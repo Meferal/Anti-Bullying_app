@@ -18,3 +18,4 @@ openpyxl
 xlrd
 faker
 python-dotenv
+docx2txt

@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from .database import init_db
 from dotenv import load_dotenv
@@ -24,4 +25,4 @@ app.include_router(parents.router)
 
 @app.get("/")
 def read_root():
-    return {"message": "Bienvenido a la Plataforma Anti-Bullying"}
+    return RedirectResponse(url="/auth/login")
