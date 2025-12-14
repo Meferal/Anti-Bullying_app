@@ -24,34 +24,75 @@ class HeuristicPredictor:
         score = 0
         flags = []
         
-        # 1. Análisis Psicosomático (Peso Normal)
-        score += self.SCORE_MAP.get(data.headache_stomach, 0)
-        
-        # 2. Análisis Conductual (Peso Normal)
-        score += self.SCORE_MAP.get(data.mood_changes, 0)
-        score += self.SCORE_MAP.get(data.sleep_problems, 0)
-        score += self.SCORE_MAP.get(data.school_resistance, 0)
-        
-        # 3. Indicadores Directos (Peso Alto / Trigger Inmediato)
-        if data.damaged_items == YesNo.YES:
-            score += 5 # Penalización alta
-            flags.append("Material escolar dañado o perdido")
-            
-        if data.conflict_verbalized == YesNo.YES:
-            score += 5
-            flags.append("Conflicto verbalizado explícitamente")
-
-        # Determinación de Nivel de Riesgo
-        risk_level = AlertLevel.LOW
-        
-        # Lógica de "Muerte Súbita" (Indicadores graves disparan riesgo alto inmediatamente)
-        if score >= self.THRESHOLD_CRITICAL or (data.damaged_items == YesNo.YES and data.conflict_verbalized == YesNo.YES):
-             risk_level = AlertLevel.CRITICAL
-        elif score >= self.THRESHOLD_HIGH:
-             risk_level = AlertLevel.HIGH
-        elif score >= self.THRESHOLD_MEDIUM:
-             risk_level = AlertLevel.MEDIUM
+        # --- Lógica Profesor (Si hay datos de profesor) ---
+        if data.t_vic_insults is not None:
+             # Scoring simple: Suma directa de valores 0-4
+             # A. Victimización
+             vic_score = sum([
+                 data.t_vic_insults or 0, data.t_vic_exclusion or 0, 
+                 data.t_vic_physical or 0, data.t_vic_theft or 0, 
+                 data.t_vic_rumors or 0, data.t_vic_threats or 0
+             ])
              
+             # B. Agresión
+             agg_score = sum([
+                 data.t_agg_insults or 0, data.t_agg_exclusion or 0,
+                 data.t_agg_physical or 0, data.t_agg_theft or 0,
+                 data.t_agg_rumors or 0
+             ])
+             
+             # C. Cyber
+             cyber_score = sum([data.t_cyber_messages or 0, data.t_cyber_anxiety or 0])
+             
+             score = vic_score + agg_score + cyber_score
+             
+             if vic_score > 10: flags.append("Alta Victimización detectada")
+             if agg_score > 10: flags.append("Comportamiento Agresor detectado")
+             if cyber_score > 4: flags.append("Indicios de Ciberacoso")
+
+             # Umbrales Profesor (Max 52)
+             if score > 25: risk_level = AlertLevel.CRITICAL
+             elif score > 15: risk_level = AlertLevel.HIGH
+             elif score > 8: risk_level = AlertLevel.MEDIUM
+             else: risk_level = AlertLevel.LOW
+             
+        # --- Lógica Padres (Default: Items p_item_1...13) ---
+        else:
+            # Block A: Directos y Materiales (Items 1-5)
+            score_a = sum([
+                data.p_item_1 or 0, data.p_item_2 or 0, data.p_item_3 or 0, 
+                data.p_item_4 or 0, data.p_item_5 or 0
+            ])
+            
+            # Block B: Psicosomáticos (Items 6-10)
+            score_b = sum([
+                data.p_item_6 or 0, data.p_item_7 or 0, data.p_item_8 or 0,
+                data.p_item_9 or 0, data.p_item_10 or 0
+            ])
+            
+            # Block C: Ciberacoso (Items 11-13)
+            score_c = sum([
+                data.p_item_11 or 0, data.p_item_12 or 0, data.p_item_13 or 0
+            ])
+            
+            score = score_a + score_b + score_c
+            
+            # Flags específicos
+            if score_a > 8: flags.append("Indicadores Directos/Físicos Altos")
+            if score_b > 10: flags.append("Alto Malestar Psicosomático")
+            if score_c > 5: flags.append("Indicios de Ciberacoso")
+            
+            # Alerta inmediata si items críticos tienen valor alto (ej: Heridas=4)
+            if (data.p_item_2 or 0) >= 3 or (data.p_item_5 or 0) >= 3:
+                flags.append("Marcador Crítico Detectado (Heridas/Coacción)")
+                risk_level = AlertLevel.CRITICAL
+            
+            # Umbrales (Max 52)
+            elif score > 25: risk_level = AlertLevel.CRITICAL
+            elif score > 15: risk_level = AlertLevel.HIGH
+            elif score > 8: risk_level = AlertLevel.MEDIUM
+            else: risk_level = AlertLevel.LOW
+
         # Recomendación básica (será enriquecida luego por el RAG)
         recommendation = self._get_recommendation(risk_level)
 

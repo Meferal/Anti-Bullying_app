@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -65,3 +65,61 @@ def submit_survey(
         )
     
     return analysis
+
+# --- Teacher Routes ---
+
+@router.get("/teacher/student-report", response_class=HTMLResponse)
+def teacher_select_student_page(request: Request, current_user: User = Depends(get_current_user)):
+    from ..models import UserRole
+    if current_user.role not in [UserRole.TEACHER, UserRole.SCHOOL_ADMIN]:
+         return templates.TemplateResponse("error.html", {"request": request, "error": "Acceso restringido a docentes."})
+    
+    # Listar alumnos asignados
+    return templates.TemplateResponse("forms/student_select.html", {
+        "request": request,
+        "user": current_user,
+        "students": current_user.supervised_students
+    })
+
+@router.get("/teacher/student-report/form", response_class=HTMLResponse)
+def teacher_fill_survey_page(request: Request, student_id: int, current_user: User = Depends(get_current_user)):
+    # Reutilizamos el formulario de padres, pero inyectamos el student_id seleccionado
+    # Validar que el alumno pertenece al profesor
+    authorized = any(s.id == student_id for s in current_user.supervised_students)
+    if not authorized:
+         return templates.TemplateResponse("error.html", {"request": request, "error": "Este alumno no está asignado a tu clase."})
+
+    return templates.TemplateResponse("forms/teacher_survey.html", {
+        "request": request,
+        "user": current_user,
+        "student_id": student_id
+    })
+
+@router.get("/teacher/class-report", response_class=HTMLResponse)
+def teacher_class_report_page(request: Request, current_user: User = Depends(get_current_user)):
+    return templates.TemplateResponse("forms/class_report.html", {
+        "request": request,
+        "user": current_user
+    })
+
+@router.post("/teacher/class-report", response_class=HTMLResponse)
+def teacher_class_report_submit(
+    request: Request, 
+    content: str = Form(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    from ..models import ClassObservation
+    
+    observation = ClassObservation(
+        teacher_id=current_user.id,
+        content=content
+    )
+    db.add(observation)
+    db.commit()
+    
+    return templates.TemplateResponse("forms/class_report.html", {
+        "request": request, 
+        "user": current_user,
+        "message": "Informe de clase registrado correctamente."
+    })

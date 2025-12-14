@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Informe de Clase - Anti-Bullying App{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 700px; margin: 3rem auto;">
+    <h2 style="text-align: center; color: #2c3e50;">Informe General de Clase</h2>
+    <p style="text-align: center; color: #7f8c8d; margin-bottom: 2rem;">
+        Registra observaciones generales sobre el clima de convivencia, conflictos grupales o incidencias no vinculadas
+        a un alumno específico.
+    </p>
+
+    {% if message %}
+    <div
+        style="background: #d4edda; color: #155724; padding: 1rem; border-radius: 4px; margin-bottom: 1.5rem; text-align: center;">
+        {{ message }}
+    </div>
+    {% endif %}
+
+    <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+        <form action="/surveys/teacher/class-report" method="POST">
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Observación / Incidencia</label>
+                <textarea name="content" required rows="6" placeholder="Describe la situación observada en el aula..."
+                    style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; resize: vertical; box-sizing: border-box;"></textarea>
+            </div>
+
+            <div style="text-align: right;">
+                <button type="submit"
+                    style="padding: 0.8rem 2rem; background: #e67e22; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                    Registrar Informe 📝
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

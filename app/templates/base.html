@@ -31,6 +31,13 @@
                     <a href="/advice/teacher" class="dropdown-item">
                         🤖 Asistente IA (Protocolo)
                     </a>
+                    <div style="border-top: 1px solid #eee; margin: 0.5rem 0;"></div>
+                    <a href="/surveys/teacher/student-report" class="dropdown-item">
+                        📝 Informe de Alumno
+                    </a>
+                    <a href="/surveys/teacher/class-report" class="dropdown-item">
+                        📢 Informe de Clase
+                    </a>
                     {% elif user.role.value == 'parent' %}
                     <a href="/parents/dashboard" class="dropdown-item">
                         🏠 Volver al Panel
@@ -39,6 +46,9 @@
                         🤖 Asistente IA (Familias)
                     </a>
                     {% endif %}
+                    <a href="/auth/edit-profile" class="dropdown-item">
+                        ✏️ Editar Perfil
+                    </a>
                     <a href="/auth/logout" class="dropdown-item">
                         🚪 Cerrar Sesión
                     </a>
@@ -58,9 +68,37 @@
         <p>&copy; 2025 Proyecto Anti-Bullying</p>
     </footer>
 
+    <!-- Floating Chat Widget -->
+    {% if user %}
+    <div id="chat-widget-container"
+        style="display: none; position: fixed; bottom: 80px; right: 20px; width: 350px; height: 500px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); z-index: 1000; overflow: hidden; border: 1px solid #eee;">
+        <div
+            style="background: #2c3e50; padding: 10px; color: white; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-weight: 600;">Asistente IA</span>
+            <button onclick="toggleChatWidget()"
+                style="background: none; border: none; color: white; cursor: pointer; font-size: 1.2rem;">×</button>
+        </div>
+        <iframe src="/advice/widget" style="width: 100%; height: 100%; border: none;"></iframe>
+    </div>
+
+    <button onclick="toggleChatWidget()"
+        style="position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; border-radius: 50%; background: #3498db; color: white; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; z-index: 1000; font-size: 1.5rem; display: flex; align-items: center; justify-content: center;">
+        💬
+    </button>
+    {% endif %}
+
     <script>
         function toggleUserMenu() {
             document.getElementById("userDropdown").classList.toggle("show");
+        }
+
+        function toggleChatWidget() {
+            const widget = document.getElementById("chat-widget-container");
+            if (widget.style.display === "none") {
+                widget.style.display = "block";
+            } else {
+                widget.style.display = "none";
+            }
         }
 
         // Close the dropdown if the user clicks outside of it

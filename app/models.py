@@ -60,6 +60,8 @@ class User(Base):
     # Relación Profesor -> Alumnos (Uno a Muchos) - Alumnos que supervisa este profesor
     supervised_students = relationship("Student", back_populates="teacher", foreign_keys="Student.teacher_id")
 
+    chat_history = relationship("ChatMessage", back_populates="user", order_by="ChatMessage.timestamp")
+
 class Student(Base):
     __tablename__ = "students"
     id = Column(Integer, primary_key=True, index=True)
@@ -101,3 +103,23 @@ class SurveyResponse(Base):
     ai_summary = Column(Text) # Resumen generado por LangChain
     
     student = relationship("Student", back_populates="surveys")
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    role = Column(String) # "user" or "assistant"
+    content = Column(Text)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    
+    # Contexto opcional (si queremos saber qué base de conocimiento se usó)
+    rag_context_used = Column(String, nullable=True) 
+
+    user = relationship("User", back_populates="chat_history")
+
+class ClassObservation(Base):
+    __tablename__ = "class_observations"
+    id = Column(Integer, primary_key=True, index=True)
+    teacher_id = Column(Integer, ForeignKey("users.id"))
+    content = Column(Text)
+    timestamp = Column(DateTime, default=datetime.utcnow)

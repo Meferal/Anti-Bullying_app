@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}Informe de Detección (Docente) - Anti-Bullying App{% endblock %}
+
+{% block content %}
+<div
+    style="max-width: 900px; margin: 2rem auto; padding: 2rem; background: #fff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <h2 style="color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 1rem; margin-bottom: 2rem;">Informe de
+        Detección (Modo Docente)</h2>
+
+    <div
+        style="background-color: #e8f6f3; padding: 1rem; border-left: 4px solid #1abc9c; margin-bottom: 2rem; border-radius: 4px;">
+        <p style="margin: 0; color: #555;">Evaluación conductas observadas. Valore de <strong>0 (Nunca)</strong> a
+            <strong>4 (Constantemente)</strong>.</p>
+    </div>
+
+    <form id="teacher-survey-form">
+
+        <!-- Bloque A: Victimización -->
+        <fieldset style="border: none; margin-bottom: 2rem;">
+            <legend style="font-weight: bold; font-size: 1.2rem; margin-bottom: 1rem; color: #e74c3c;">Bloque A:
+                Victimización (El alumno RECIBE)</legend>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr style="background: #f8f9fa;">
+                        <th style="text-align: left; padding: 10px; border-bottom: 2px solid #ddd;">Ítem / Conducta
+                            Observable</th>
+                        <th style="width: 40px; text-align: center;">0</th>
+                        <th style="width: 40px; text-align: center;">1</th>
+                        <th style="width: 40px; text-align: center;">2</th>
+                        <th style="width: 40px; text-align: center;">3</th>
+                        <th style="width: 40px; text-align: center;">4</th>
+                    </tr>
+
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">1. Otros estudiantes le insultan,
+                            ponen motes ofensivos o se burlan.</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio" name="t_vic_insults"
+                                value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">2. Es excluido/a deliberadamente de
+                            grupos o juegos.</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio"
+                                name="t_vic_exclusion" value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">3. Ha sido golpeado/a, empujado/a o
+                            agredido/a físicamente.</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio"
+                                name="t_vic_physical" value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">4. Le han escondido, roto o robado
+                            material escolar.</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio" name="t_vic_theft"
+                                value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">5. Otros estudiantes difunden rumores
+                            falsos sobre él/ella.</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio" name="t_vic_rumors"
+                                value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">6. Ha recibido amenazas o ha sido
+                            coaccionado/a.</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio" name="t_vic_threats"
+                                value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                </table>
+            </div>
+        </fieldset>
+
+        <!-- Bloque B: Agresión -->
+        <fieldset style="border: none; margin-bottom: 2rem;">
+            <legend style="font-weight: bold; font-size: 1.2rem; margin-bottom: 1rem; color: #d35400;">Bloque B:
+                Agresión (El alumno REALIZA)</legend>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr style="background: #f8f9fa;">
+                        <th style="text-align: left; padding: 10px; border-bottom: 2px solid #ddd;">Ítem / Conducta
+                            Observable</th>
+                        <th style="width: 40px; text-align: center;">0</th>
+                        <th style="width: 40px; text-align: center;">1</th>
+                        <th style="width: 40px; text-align: center;">2</th>
+                        <th style="width: 40px; text-align: center;">3</th>
+                        <th style="width: 40px; text-align: center;">4</th>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">7. Insulta, pone motes o se burla de
+                            otros compañeros/as.</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio" name="t_agg_insults"
+                                value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">8. Impide que otros participen o
+                            manipula la exclusión social.</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio"
+                                name="t_agg_exclusion" value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">9. Golpea, empuja o inicia peleas
+                            físicas.</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio"
+                                name="t_agg_physical" value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">10. Coge, rompe o esconde cosas de
+                            otros sin permiso.</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio" name="t_agg_theft"
+                                value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">11. Lidera o instiga la difusión de
+                            rumores.</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio" name="t_agg_rumors"
+                                value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                </table>
+            </div>
+        </fieldset>
+
+        <!-- Bloque C: Ciberacoso -->
+        <fieldset style="border: none; margin-bottom: 2rem;">
+            <legend style="font-weight: bold; font-size: 1.2rem; margin-bottom: 1rem; color: #8e44ad;">Bloque C:
+                Indicadores Ciberacoso</legend>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr style="background: #f8f9fa;">
+                        <th style="text-align: left; padding: 10px; border-bottom: 2px solid #ddd;">Ítem / Conducta
+                            Observable</th>
+                        <th style="width: 40px; text-align: center;">0</th>
+                        <th style="width: 40px; text-align: center;">1</th>
+                        <th style="width: 40px; text-align: center;">2</th>
+                        <th style="width: 40px; text-align: center;">3</th>
+                        <th style="width: 40px; text-align: center;">4</th>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">12. Se ha reportado que recibe/envía
+                            mensajes ofensivos o amenazas digitales.</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio"
+                                name="t_cyber_messages" value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">13. Muestra ansiedad o rechazo visible
+                            ante el uso de dispositivos.</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio"
+                                name="t_cyber_anxiety" value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                </table>
+            </div>
+        </fieldset>
+
+        <!-- Observaciones -->
+        <fieldset style="border: none; margin-bottom: 2rem;">
+            <legend style="font-weight: bold; font-size: 1.2rem; margin-bottom: 1rem; color: #34495e;">Observaciones
+                Cualitativas</legend>
+            <div class="form-group">
+                <textarea name="t_observations" rows="4"
+                    style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px;"
+                    placeholder="Describa incidentes críticos, cambios de comportamiento o factores contextuales..."></textarea>
+            </div>
+        </fieldset>
+
+        <button type="submit"
+            style="width: 100%; padding: 1rem; background-color: #1abc9c; color: white; border: none; border-radius: 6px; font-size: 1.1rem; cursor: pointer; transition: background 0.3s;">
+            Enviar Informe Docente
+        </button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('teacher-survey-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // 1. Recoger datos
+        const formData = new FormData(e.target);
+
+        // Convertir strings a ints excepto observacion
+        const data = {};
+        for (let [key, val] of formData.entries()) {
+            if (key === 't_observations') {
+                data[key] = val;
+            } else {
+                data[key] = parseInt(val);
+            }
+        }
+
+        // 2. Obtener ID alumno
+        const urlParams = new URLSearchParams(window.location.search);
+        const studentId = urlParams.get('student_id');
+
+        if (!studentId) {
+            alert("Error: Faltan identificadores de alumno en URL.");
+            return;
+        }
+
+        try {
+            const response = await fetch(`/surveys/api/submit?student_id=${studentId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                alert('Informe Docente registrado correctamente.');
+                window.location.href = '/surveys/teacher/student-report';
+            } else {
+                const err = await response.json();
+                alert('Error al enviar: ' + JSON.stringify(err));
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Error de conexión.');
+        }
+    });
+</script>
+{% endblock %}

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from datetime import timedelta
 from ..database import get_db
 from ..models import User
-from ..security import verify_password, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
+from ..security import verify_password, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, get_current_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 templates = Jinja2Templates(directory="app/templates")
@@ -59,15 +59,29 @@ def register_user(
     request: Request,
     email: str = Form(...),
     password: str = Form(...),
+    confirm_password: str = Form(...), # Nuevo campo
     full_name: str = Form(...),
     role: str = Form(...),
     center_code: str = Form(None),
+    gdpr_consent: str = Form(None), # Checkbox
     db: Session = Depends(get_db)
 ):
     from ..models import UserRole
     from ..security import get_password_hash, validate_password_strength
 
-    # 1. Validar password
+    # 1. Validar Consentimiento GDPR
+    if not gdpr_consent:
+         return templates.TemplateResponse("register.html", {
+             "request": request, "error": "Debes aceptar la Política de Privacidad para registrarte."
+         })
+
+    # 2. Validar coincidencia de passwords
+    if password != confirm_password:
+         return templates.TemplateResponse("register.html", {
+             "request": request, "error": "Las contraseñas no coinciden."
+         })
+
+    # 2. Validar password strength
     try:
         validate_password_strength(password)
     except HTTPException as e:
@@ -127,6 +141,10 @@ def register_user(
     response = RedirectResponse(url=redirect_url, status_code=status.HTTP_303_SEE_OTHER)
     response.set_cookie(key="access_token", value=access_token, httponly=True)
     return response
+
+@router.get("/privacy-policy", response_class=HTMLResponse)
+def privacy_policy_page(request: Request):
+    return templates.TemplateResponse("privacy_policy.html", {"request": request})
 
 @router.get("/forgot-password", response_class=HTMLResponse)
 def forgot_password_page(request: Request):
@@ -212,4 +230,51 @@ def logout():
     response = RedirectResponse(url="/auth/login", status_code=status.HTTP_303_SEE_OTHER)
     response.delete_cookie("access_token")
     return response
+
+@router.get("/edit-profile", response_class=HTMLResponse)
+def edit_profile_page(request: Request, current_user: User = Depends(get_current_user)):
+    return templates.TemplateResponse("edit_profile.html", {"request": request, "user": current_user})
+
+@router.post("/edit-profile")
+def edit_profile_action(
+    request: Request,
+    full_name: str = Form(...),
+    new_password: str = Form(None),
+    confirm_new_password: str = Form(None),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    from ..security import get_password_hash, validate_password_strength
+
+    message = None
+    error = None
+
+    # 1. Actualizar Nombre
+    if full_name:
+        current_user.full_name = full_name
+
+    # 2. Actualizar Password (si se provee)
+    if new_password:
+        if new_password != confirm_new_password:
+             return templates.TemplateResponse("edit_profile.html", {
+                 "request": request, "user": current_user, "error": "Las contraseñas no coinciden."
+             })
+        
+        try:
+            validate_password_strength(new_password)
+            current_user.hashed_password = get_password_hash(new_password)
+            message = "Perfil y contraseña actualizados correctamente."
+        except HTTPException as e:
+             return templates.TemplateResponse("edit_profile.html", {
+                 "request": request, "user": current_user, "error": e.detail
+             })
+    else:
+        message = "Perfil actualizado correctamente."
+
+    db.commit()
+    db.refresh(current_user)
+
+    return templates.TemplateResponse("edit_profile.html", {
+        "request": request, "user": current_user, "message": message
+    })
 

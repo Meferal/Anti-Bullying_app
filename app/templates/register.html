@@ -18,27 +18,56 @@
         <div style="margin-bottom: 1rem;">
             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Nombre Completo</label>
             <input type="text" name="full_name" required
-                style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px;">
+                style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
         </div>
 
         <div style="margin-bottom: 1rem;">
             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Email</label>
             <input type="email" name="email" required
-                style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px;">
+                style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
         </div>
 
         <div style="margin-bottom: 1rem;">
             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Contraseña</label>
-            <input type="password" name="password" required
-                style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px;">
+            <div style="position: relative;">
+                <input type="password" name="password" id="password" required
+                    style="width: 100%; padding: 0.8rem; padding-right: 40px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+                <button type="button" onmousedown="showPassword('password')" onmouseup="hidePassword('password')"
+                    onmouseout="hidePassword('password')"
+                    style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #7f8c8d;">
+                    👁️
+                </button>
+            </div>
             <small style="color: #7f8c8d; font-size: 0.8rem;">Mín. 10 caracteres, 1 Mayúscula, 1 Número, 1
                 Símbolo.</small>
         </div>
 
+        <div style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Confirmar Contraseña</label>
+            <div style="position: relative;">
+                <input type="password" name="confirm_password" id="confirm_password" required
+                    style="width: 100%; padding: 0.8rem; padding-right: 40px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+                <button type="button" onmousedown="showPassword('confirm_password')"
+                    onmouseup="hidePassword('confirm_password')" onmouseout="hidePassword('confirm_password')"
+                    style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #7f8c8d;">
+                    👁️
+                </button>
+            </div>
+        </div>
+
+        <script>
+            function showPassword(id) {
+                document.getElementById(id).type = "text";
+            }
+            function hidePassword(id) {
+                document.getElementById(id).type = "password";
+            }
+        </script>
+
         <div style="margin-bottom: 1.5rem;">
             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Soy...</label>
             <select name="role" required id="roleSelect" onchange="toggleTeacherFields()"
-                style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px;">
+                style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
                 <option value="parent">Padre / Madre / Tutor</option>
                 <option value="teacher">Profesor / Docente</option>
             </select>
@@ -47,7 +76,7 @@
         <div id="schoolCodeField" style="margin-bottom: 1rem; display: none;">
             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Código del Centro (Opcional)</label>
             <input type="text" name="center_code" placeholder="Ej: MAD-001"
-                style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px;">
+                style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
             <small style="color: #7f8c8d; font-size: 0.8rem;">Si trabajas en un colegio registrado, introduce su
                 código.</small>
         </div>
@@ -63,7 +92,26 @@
                     field.querySelector('input').value = ''; // Limpiar si cambia a padre
                 }
             }
+
+            document.querySelector('form').addEventListener('submit', function (e) {
+                const p1 = document.getElementById('password').value;
+                const p2 = document.getElementById('confirm_password').value;
+
+                if (p1 !== p2) {
+                    e.preventDefault();
+                    alert("Las contraseñas no coinciden.");
+                }
+            });
         </script>
+
+        <div style="margin-bottom: 1.5rem; display: flex; align-items: start; gap: 0.5rem;">
+            <input type="checkbox" name="gdpr_consent" id="gdpr_consent" required style="margin-top: 4px;">
+            <label for="gdpr_consent" style="font-size: 0.9rem; color: #555;">
+                He leído y acepto la <a href="/auth/privacy-policy" target="_blank" style="color: #3498db;">Política de
+                    Privacidad</a> y el tratamiento de
+                mis datos personales.
+            </label>
+        </div>
 
         <button type="submit"
             style="width: 100%; padding: 0.8rem; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">

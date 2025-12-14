@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Perfil - Anti-Bullying App{% endblock %}
+
+{% block content %}
+<div
+    style="max-width: 500px; margin: 3rem auto; padding: 2rem; background: white; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+    <h2 style="text-align: center; color: #2c3e50; margin-bottom: 2rem;">Editar Perfil</h2>
+
+    {% if error %}
+    <div
+        style="background: #ffebee; color: #c0392b; padding: 0.8rem; border-radius: 4px; margin-bottom: 1.5rem; text-align: center;">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    {% if message %}
+    <div
+        style="background: #e8f5e9; color: #27ae60; padding: 0.8rem; border-radius: 4px; margin-bottom: 1.5rem; text-align: center;">
+        {{ message }}
+    </div>
+    {% endif %}
+
+    <form action="/auth/edit-profile" method="POST">
+        <div style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Nombre Completo</label>
+            <input type="text" name="full_name" value="{{ user.full_name }}" required
+                style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Email (No editable)</label>
+            <input type="email" value="{{ user.email }}" disabled
+                style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9; box-sizing: border-box;">
+        </div>
+
+        {% if user.role.value == 'teacher' %}
+        <div style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Código de Profesor</label>
+            <input type="text" value="{{ user.teacher_code }}" disabled
+                style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9; box-sizing: border-box;">
+            <small style="color: #7f8c8d;">Comparte este código con los padres para que vinculen a sus hijos.</small>
+        </div>
+        {% endif %}
+
+        <hr style="margin: 2rem 0; border: 0; border-top: 1px solid #eee;">
+
+        <h3 style="font-size: 1.1rem; color: #2c3e50; margin-bottom: 1rem;">Cambiar Contraseña (Opcional)</h3>
+
+        <div style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Nueva Contraseña</label>
+            <div style="position: relative;">
+                <input type="password" name="new_password" id="new_password"
+                    placeholder="Dejar en blanco para mantener la actual"
+                    style="width: 100%; padding: 0.8rem; padding-right: 40px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+                <button type="button" onmousedown="showPassword('new_password')"
+                    onmouseup="hidePassword('new_password')" onmouseout="hidePassword('new_password')"
+                    style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #7f8c8d;">
+                    👁️
+                </button>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Confirmar Nueva Contraseña</label>
+            <div style="position: relative;">
+                <input type="password" name="confirm_new_password" id="confirm_new_password"
+                    style="width: 100%; padding: 0.8rem; padding-right: 40px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+                <button type="button" onmousedown="showPassword('confirm_new_password')"
+                    onmouseup="hidePassword('confirm_new_password')" onmouseout="hidePassword('confirm_new_password')"
+                    style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #7f8c8d;">
+                    👁️
+                </button>
+            </div>
+        </div>
+
+        <script>
+            function showPassword(id) {
+                document.getElementById(id).type = "text";
+            }
+            function hidePassword(id) {
+                document.getElementById(id).type = "password";
+            }
+
+            document.querySelector('form').addEventListener('submit', function (e) {
+                const p1 = document.getElementById('new_password').value;
+                const p2 = document.getElementById('confirm_new_password').value;
+
+                if (p1 && p1 !== p2) {
+                    e.preventDefault();
+                    alert("Las nuevas contraseñas no coinciden.");
+                }
+            });
+        </script>
+
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <a href="javascript:history.back()"
+                style="flex: 1; padding: 0.8rem; text-align: center; border: 1px solid #ddd; color: #7f8c8d; text-decoration: none; border-radius: 4px;">
+                Cancelar
+            </a>
+            <button type="submit"
+                style="flex: 2; padding: 0.8rem; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                Guardar Cambios
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

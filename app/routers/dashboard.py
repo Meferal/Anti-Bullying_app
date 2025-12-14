@@ -94,9 +94,11 @@ def get_schools_geojson(db: Session = Depends(get_db)):
     from fastapi.responses import JSONResponse
     from collections import defaultdict
     
-    # 1. Filtrar colegios: Solo los que tienen algún profesor asignado
+    # 1. Filtrar colegios: Solo los que tienen algún usuario activo (Profe o Admin o Padre)
+    # y geolocalización válida
+    from sqlalchemy import or_
     schools_with_teachers = db.query(School).join(User).filter(
-        User.role == UserRole.TEACHER,
+        # User.role.in_([UserRole.TEACHER, UserRole.SCHOOL_ADMIN, UserRole.PARENT]), # Broaden scope
         School.latitude.isnot(None),
         School.longitude.isnot(None)
     ).distinct().all()

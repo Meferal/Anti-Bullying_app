@@ -4,109 +4,154 @@
 
 {% block content %}
 <div
-    style="max-width: 800px; margin: 2rem auto; padding: 2rem; background: #fff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-    <h2 style="color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 1rem; margin-bottom: 2rem;">Seguimiento
-        Semanal del Alumno</h2>
+    style="max-width: 900px; margin: 2rem auto; padding: 2rem; background: #fff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <h2 style="color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 1rem; margin-bottom: 2rem;">
+        {% if teacher_mode %}Informe de Detección (Docente){% else %}Seguimiento Semanal del Alumno (Familia){% endif %}
+    </h2>
 
     <div
         style="background-color: #f8f9fa; padding: 1rem; border-left: 4px solid #007bff; margin-bottom: 2rem; border-radius: 4px;">
-        <p style="margin: 0; color: #555;">Por favor, responda con sinceridad basándose en lo observado durante la
-            última semana. Sus respuestas son confidenciales y ayudan a proteger el bienestar de su hijo/a.</p>
+        <p style="margin: 0; color: #555;">Valore las siguientes situaciones de <strong>0 (Nunca)</strong> a <strong>4
+                (Constantemente)</strong> según lo observado esta semana.</p>
     </div>
 
     <form id="survey-form">
-        <!-- Sección A: Salud Física -->
-        <fieldset style="border: none; margin-bottom: 2rem;">
-            <legend style="font-weight: bold; font-size: 1.2rem; margin-bottom: 1rem; color: #34495e;">A. Indicadores
-                Físicos</legend>
 
-            <div class="form-group" style="margin-bottom: 1.5rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">¿Ha manifestado dolores de
-                    cabeza o malestar físico antes de ir al colegio (sin causa médica)?</label>
-                <select name="headache_stomach" required
-                    style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
-                    <option value="" disabled selected>Seleccione una opción...</option>
-                    <option value="nunca">Nunca</option>
-                    <option value="a_veces">A veces</option>
-                    <option value="a_menudo">A menudo</option>
-                    <option value="siempre">Siempre</option>
-                </select>
+        <!-- Bloque A -->
+        <fieldset style="border: none; margin-bottom: 2rem;">
+            <legend style="font-weight: bold; font-size: 1.2rem; margin-bottom: 1rem; color: #e74c3c;">Bloque A:
+                Indicadores Directos y Materiales</legend>
+            <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem;">Situaciones que el menor relata o
+                evidencias físicas.</p>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr style="background: #f8f9fa;">
+                        <th style="text-align: left; padding: 10px; border-bottom: 2px solid #ddd;">Ítem / Conducta
+                            Observable</th>
+                        {% for i in range(5) %}<th style="width: 40px; text-align: center;">{{i}}</th>{% endfor %}
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">1. Llega a casa con ropa rota, libros
+                            dañados o falta material.</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio" name="p_item_1"
+                                value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">2. Tiene heridas, moratones o rasguños
+                            sin explicación clara.</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio" name="p_item_2"
+                                value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">3. Cuenta que le insultan, ponen motes
+                            o se ríen de él/ella.</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio" name="p_item_3"
+                                value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">4. Manifiesta exclusión ("nadie quiere
+                            estar con él/ella").</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio" name="p_item_4"
+                                value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">5. Menciona coacción ("le obligan
+                            a...") o amenazas.</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio" name="p_item_5"
+                                value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                </table>
             </div>
         </fieldset>
 
-        <!-- Sección B: Cambios Emocionales -->
+        <!-- Bloque B -->
         <fieldset style="border: none; margin-bottom: 2rem;">
-            <legend style="font-weight: bold; font-size: 1.2rem; margin-bottom: 1rem; color: #34495e;">B. Cambios
-                Conductuales</legend>
-
-            <div class="form-group" style="margin-bottom: 1.5rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">¿Ha notado cambios bruscos de
-                    humor, irritabilidad o tristeza al volver de clase?</label>
-                <select name="mood_changes" required
-                    style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
-                    <option value="" disabled selected>Seleccione una opción...</option>
-                    <option value="nunca">Nunca</option>
-                    <option value="a_veces">A veces</option>
-                    <option value="a_menudo">A menudo</option>
-                    <option value="siempre">Siempre</option>
-                </select>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 1.5rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">¿Tiene dificultades para dormir
-                    o pesadillas?</label>
-                <select name="sleep_problems" required
-                    style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
-                    <option value="" disabled selected>Seleccione una opción...</option>
-                    <option value="nunca">Nunca</option>
-                    <option value="a_veces">A veces</option>
-                    <option value="a_menudo">A menudo</option>
-                    <option value="siempre">Siempre</option>
-                </select>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 1.5rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">¿Muestra resistencia o ansiedad
-                    explícita a la hora de ir al colegio?</label>
-                <select name="school_resistance" required
-                    style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
-                    <option value="" disabled selected>Seleccione una opción...</option>
-                    <option value="nunca">Nunca</option>
-                    <option value="a_veces">A veces</option>
-                    <option value="a_menudo">A menudo</option>
-                    <option value="siempre">Siempre</option>
-                </select>
+            <legend style="font-weight: bold; font-size: 1.2rem; margin-bottom: 1rem; color: #d35400;">Bloque B:
+                Indicadores Psicosomáticos y Emocionales</legend>
+            <p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 1rem;">Señal de alarma visible en casa (fines de
+                semana, mañanas).</p>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr style="background: #f8f9fa;">
+                        <th style="text-align: left; padding: 10px; border-bottom: 2px solid #ddd;">Ítem / Conducta
+                            Observable</th>
+                        {% for i in range(5) %}<th style="width: 40px; text-align: center;">{{i}}</th>{% endfor %}
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">6. Ansiedad, llanto o resistencia
+                            antes de ir al colegio.</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio" name="p_item_6"
+                                value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">7. Dolores de cabeza/estómago
+                            frecuentes sin causa médica.</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio" name="p_item_7"
+                                value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">8. Cambios en sueño (pesadillas) o
+                            alimentación.</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio" name="p_item_8"
+                                value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">9. Tristeza, irritabilidad o cambios
+                            bruscos de humor.</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio" name="p_item_9"
+                                value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">10. Evita hablar del colegio, se
+                            cierra en banda.</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio" name="p_item_10"
+                                value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                </table>
             </div>
         </fieldset>
 
-        <!-- Sección C: Alertas Directas -->
+        <!-- Bloque C -->
         <fieldset style="border: none; margin-bottom: 2rem;">
-            <legend style="font-weight: bold; font-size: 1.2rem; margin-bottom: 1rem; color: #e74c3c;">C. Alertas
-                Directas</legend>
-
-            <div class="form-group" style="margin-bottom: 1.5rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">¿Ha llegado a casa con material
-                    escolar roto, perdido o ropa estropeada?</label>
-                <div style="display: flex; gap: 1rem;">
-                    <label><input type="radio" name="damaged_items" value="si" required> Sí</label>
-                    <label><input type="radio" name="damaged_items" value="no"> No</label>
-                </div>
+            <legend style="font-weight: bold; font-size: 1.2rem; margin-bottom: 1rem; color: #8e44ad;">Bloque C:
+                Ciberacoso y Tecnología</legend>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr style="background: #f8f9fa;">
+                        <th style="text-align: left; padding: 10px; border-bottom: 2px solid #ddd;">Ítem / Conducta
+                            Observable</th>
+                        {% for i in range(5) %}<th style="width: 40px; text-align: center;">{{i}}</th>{% endfor %}
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">11. Nervioso/a o angustiado/a tras
+                            usar móvil/tablet.</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio" name="p_item_11"
+                                value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">12. Oculta la pantalla rápidamente si
+                            te acercas.</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio" name="p_item_12"
+                                value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #eee;">13. Mensajes o comentarios ofensivos
+                            en redes.</td>
+                        {% for i in range(5) %} <td style="text-align: center;"><input type="radio" name="p_item_13"
+                                value="{{i}}" required></td> {% endfor %}
+                    </tr>
+                </table>
             </div>
+        </fieldset>
 
-            <div class="form-group" style="margin-bottom: 1.5rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">¿Ha verbalizado algún conflicto
-                    con compañeros?</label>
-                <div style="display: flex; gap: 1rem;">
-                    <label><input type="radio" name="conflict_verbalized" value="si" required> Sí</label>
-                    <label><input type="radio" name="conflict_verbalized" value="no"> No</label>
-                </div>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 1.5rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Si contestó Sí, ¿puede dar
-                    detalles breves?</label>
-                <textarea name="conflict_details"
-                    style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px; min-height: 80px;"></textarea>
+        <!-- Observaciones -->
+        <fieldset style="border: none; margin-bottom: 2rem;">
+            <legend style="font-weight: bold; font-size: 1.2rem; margin-bottom: 1rem; color: #34495e;">Observaciones de
+                la Familia</legend>
+            <div class="form-group">
+                <textarea name="p_observations" rows="4"
+                    style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 6px;"
+                    placeholder="Detalles relevantes sobre el estado anímico, contexto, etc."></textarea>
             </div>
         </fieldset>
 
@@ -121,11 +166,19 @@
     document.getElementById('survey-form').addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // Recoger datos del formulario
+        // Recoger datos
         const formData = new FormData(e.target);
-        const data = Object.fromEntries(formData.entries());
 
-        // Obtener IDs de la URL (Pasados desde el Dashboard)
+        // Convert to ints
+        const data = {};
+        for (let [key, val] of formData.entries()) {
+            if (key === 'p_observations') {
+                data[key] = val;
+            } else {
+                data[key] = parseInt(val);
+            }
+        }
+
         const urlParams = new URLSearchParams(window.location.search);
         const studentId = urlParams.get('student_id');
 
@@ -137,16 +190,17 @@
         try {
             const response = await fetch(`/surveys/api/submit?student_id=${studentId}`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
 
             if (response.ok) {
-                const result = await response.json();
                 alert('Informe enviado correctamente.\nGracias por su colaboración.');
+                {% if teacher_mode %}
+                window.location.href = '/surveys/teacher/student-report';
+                {% else %}
                 window.location.href = '/parents/dashboard';
+                {% endif %}
             } else {
                 alert('Hubo un error al enviar el informe.');
             }

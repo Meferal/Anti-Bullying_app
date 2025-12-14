@@ -123,11 +123,14 @@ class RagExpert:
             context_instruction = "Usa terminología precisa, legal y enfócate en el procedimiento."
 
         template = f"""Eres {role_description}.
-        Utiliza el siguiente contexto para responder.
+        Utiliza el siguiente contexto y el historial de conversación para responder.
         {context_instruction}
         Si la respuesta no está en el contexto, avisa y da una recomendación general.
 
         Contexto: {{context}}
+
+        Historial Reciente:
+        {{history}}
 
         Pregunta: {{question}}
 
@@ -140,15 +143,24 @@ class RagExpert:
             return "\n\n".join(doc.page_content for doc in docs)
 
         self.chains[role] = (
-            {"context": retriever | format_docs, "question": RunnablePassthrough()}
+            {
+                "context": retriever | format_docs, 
+                "question": RunnablePassthrough(),
+                "history": RunnablePassthrough() # Se pasará como input dict
+            }
             | prompt
             | llm
             | StrOutputParser()
         )
 
-    def get_advice(self, query: str, role: str = "parents") -> str:
+    def get_advice(self, query: str, role: str = "parents", history: str = "") -> str:
         if role not in self.chains or not self.chains[role]:
             return f"El sistema RAG para '{role}' no está activo o no tiene documentos."
-        return self.chains[role].invoke(query)
+            
+        # Invoke ahora espera un dict porque cambiamos el primer paso de la chain
+        return self.chains[role].invoke({
+            "question": query,
+            "history": history
+        })
 
 rag_system = RagExpert()
