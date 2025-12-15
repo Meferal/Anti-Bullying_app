@@ -142,11 +142,13 @@ class RagExpert:
         def format_docs(docs):
             return "\n\n".join(doc.page_content for doc in docs)
 
+        from operator import itemgetter
+
         self.chains[role] = (
             {
-                "context": retriever | format_docs, 
-                "question": RunnablePassthrough(),
-                "history": RunnablePassthrough() # Se pasará como input dict
+                "context": itemgetter("question") | retriever | format_docs, 
+                "question": itemgetter("question"),
+                "history": itemgetter("history")
             }
             | prompt
             | llm

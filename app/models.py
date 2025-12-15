@@ -24,7 +24,7 @@ class AlertLevel(enum.Enum):
 class School(Base):
     __tablename__ = "schools"
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True)
+    name = Column(String, index=True) # Names can be duplicated across towns
     center_code = Column(String, unique=True, index=True, nullable=True) # Código oficial del centro
     address = Column(String)
     latitude = Column(Float, nullable=True)
@@ -48,7 +48,7 @@ class User(Base):
     recovery_token = Column(String, nullable=True)
 
     # Código único del profesor (9 caracteres) - Solo si role=TEACHER/SCHOOL_ADMIN
-    teacher_code = Column(String(9), unique=True, index=True, nullable=True)
+    teacher_code = Column(String(20), unique=True, index=True, nullable=True)
 
     # Multi-tenancy: A qué colegio pertenece (Null si es SuperAdmin global)
     school_id = Column(Integer, ForeignKey("schools.id"), nullable=True)
@@ -66,6 +66,7 @@ class Student(Base):
     __tablename__ = "students"
     id = Column(Integer, primary_key=True, index=True)
     internal_code = Column(String, unique=True, index=True) 
+    name = Column(String, nullable=True) # Nombre real/alias dado por el padre
     age = Column(Integer)
     grade_class = Column(String) 
     

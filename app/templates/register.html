@@ -68,8 +68,10 @@
             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Soy...</label>
             <select name="role" required id="roleSelect" onchange="toggleTeacherFields()"
                 style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
-                <option value="parent">Padre / Madre / Tutor</option>
-                <option value="teacher">Profesor / Docente</option>
+                <option value="parent">Padre / Madre / Tutor / a</option>
+                <option value="teacher">Profesor / a / Docente</option>
+                <option value="school_admin">Director / a</option>
+                <option value="super_admin">Conselleria</option>
             </select>
         </div>
 
@@ -85,8 +87,25 @@
             function toggleTeacherFields() {
                 const role = document.getElementById('roleSelect').value;
                 const field = document.getElementById('schoolCodeField');
-                if (role === 'teacher') {
+                if (role === 'teacher' || role === 'school_admin' || role === 'super_admin') {
                     field.style.display = 'block';
+
+                    const input = field.querySelector('input');
+                    const label = field.querySelector('label');
+
+                    if (role === 'school_admin') {
+                        input.required = true;
+                        label.innerText = "Código de Centro";
+                        input.placeholder = "Ej: MAD-001 (Obligatorio)";
+                    } else if (role === 'super_admin') {
+                        input.required = true;
+                        label.innerText = "Clave de Acceso";
+                        input.placeholder = "Introduce la clave de acceso (Obligatorio)";
+                    } else {
+                        input.required = false; // Opcional para profesorado
+                        label.innerText = "Código de Centro";
+                        input.placeholder = "Ej: MAD-001 (Opcional)";
+                    }
                 } else {
                     field.style.display = 'none';
                     field.querySelector('input').value = ''; // Limpiar si cambia a padre

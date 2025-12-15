@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Panel de Director - {{ school.name }}{% endblock %}
+
+{% block content %}
+<div style="padding: 2rem; max-width: 1200px; margin: 0 auto;">
+
+    <header style="margin-bottom: 2rem;">
+        <h1 style="color: #2c3e50;">Panel de Dirección: {{ school.name }}</h1>
+        <p style="color: #7f8c8d;">Visión general del estado de convivencia del centro.</p>
+    </header>
+
+    <!-- Top Stats Cards -->
+    <div
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
+
+        <!-- Total Alumnos -->
+        <div
+            style="background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid #3498db;">
+            <h3 style="margin: 0; color: #7f8c8d; font-size: 0.9rem; text-transform: uppercase;">Total Alumnos / as</h3>
+            <p style="margin: 0.5rem 0 0; font-size: 2.5rem; font-weight: 700; color: #2c3e50;">{{ total_students }}</p>
+        </div>
+
+        <!-- Alertas Activas -->
+        <div
+            style="background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid #e74c3c;">
+            <h3 style="margin: 0; color: #7f8c8d; font-size: 0.9rem; text-transform: uppercase;">Alertas Graves</h3>
+            <p style="margin: 0.5rem 0 0; font-size: 2.5rem; font-weight: 700; color: #e74c3c;">{{ total_alerts }}</p>
+        </div>
+
+        <!-- Estado del Centro -->
+        <div
+            style="background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid {% if school_color == 'red' %}#e74c3c{% elif school_color == 'orange' %}#f39c12{% else %}#2ecc71{% endif %};">
+            <h3 style="margin: 0; color: #7f8c8d; font-size: 0.9rem; text-transform: uppercase;">Estado del Centro</h3>
+            <p
+                style="margin: 0.5rem 0 0; font-size: 1.5rem; font-weight: 700; color: {% if school_color == 'red' %}#e74c3c{% elif school_color == 'orange' %}#f39c12{% else %}#2ecc71{% endif %};">
+                {{ school_status }}
+            </p>
+        </div>
+    </div>
+
+    <!-- Tabla de Aulas -->
+    <h2 style="color: #2c3e50; margin-bottom: 1rem;">Aulas</h2>
+
+    <div style="background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f8f9fa; text-align: left;">
+                    <th style="padding: 1rem; border-bottom: 2px solid #eee; color: #7f8c8d;">Código Aula</th>
+                    <th style="padding: 1rem; border-bottom: 2px solid #eee; color: #7f8c8d;">Alumnos / as</th>
+                    <th style="padding: 1rem; border-bottom: 2px solid #eee; color: #7f8c8d;">Alertas</th>
+                    <th style="padding: 1rem; border-bottom: 2px solid #eee; color: #7f8c8d;">Estado Salud</th>
+                    <th style="padding: 1rem; border-bottom: 2px solid #eee; color: #7f8c8d;">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for classroom in classrooms %}
+                <tr style="border-bottom: 1px solid #eee; transition: background 0.2s; cursor: pointer;"
+                    onclick="window.location.href='/dashboard/school_admin/classroom/{{ classroom.name }}'">
+                    <td style="padding: 1rem; font-weight: 600; color: #2c3e50;">
+                        {{ classroom.name }}
+                        {% if classroom.has_critical %}
+                        <span
+                            style="display: inline-block; width: 8px; height: 8px; background-color: #e74c3c; border-radius: 50%; margin-left: 5px; vertical-align: middle;"
+                            title="Caso crítico activo"></span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 1rem; color: #555;">
+                        {{ classroom.student_count }}
+                    </td>
+                    <td style="padding: 1rem;">
+                        {% if classroom.alerts_count > 0 %}
+                        <span
+                            style="background: #fadbd8; color: #c0392b; padding: 0.2rem 0.6rem; border-radius: 12px; font-weight: 600; font-size: 0.9rem;">
+                            {{ classroom.alerts_count }} activas
+                        </span>
+                        {% else %}
+                        <span style="color: #95a5a6;">0</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 1rem;">
+                        {% if classroom.status == 'red' %}
+                        <span style="color: #c0392b; font-weight: bold;">🔴 Crítico</span>
+                        {% elif classroom.status == 'orange' %}
+                        <span style="color: #d35400; font-weight: bold;">🟠 Precaución</span>
+                        {% else %}
+                        <span style="color: #27ae60; font-weight: bold;">🟢 Saludable</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 1rem;">
+                        <a href="/dashboard/school_admin/classroom/{{ classroom.name }}"
+                            style="color: #3498db; text-decoration: none; font-weight: 500;">
+                            Ver Detalle &rarr;
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

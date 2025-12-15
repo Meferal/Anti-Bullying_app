@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Panel Conselleria - Anti-Bullying App{% endblock %}
+
+{% block content %}
+<div style="padding: 2rem; max-width: 1200px; margin: 0 auto;">
+
+    <header style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1 style="color: #2c3e50;">Panel Conselleria (Generalitat Valenciana)</h1>
+            <p style="color: #7f8c8d;">Visión global de todos los centros educativos adheridos.</p>
+        </div>
+        <div>
+            <a href="/dashboard/map"
+                style="background: #3498db; color: white; padding: 0.8rem 1.5rem; text-decoration: none; border-radius: 6px; font-weight: 600;">
+                🌍 Ver Mapa Global
+            </a>
+        </div>
+    </header>
+
+    <!-- Buscador -->
+    <div style="margin-bottom: 2rem;">
+        <input type="text" id="schoolSearch" onkeyup="filterSchools()"
+            placeholder="🔍 Buscar centro por nombre o código..."
+            style="width: 100%; padding: 1rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; box-sizing: border-box; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+    </div>
+
+    {% if schools %}
+    <div style="display: flex; flex-direction: column; gap: 1rem;" id="schoolList">
+        {% for school in schools %}
+        <div class="school-card"
+            style="background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow: hidden;">
+
+            <!-- Cabecera del Colegio (Accordion Trigger) -->
+            <!-- Cabecera del Colegio (Accordion Trigger) -->
+            <!-- Color Logic -->
+            {% set status = statuses.get(school.id, 'green') %}
+            {% set border_color = '#2ecc71' %}
+            {% set bg_color = '#f8f9fa' %}
+
+            {% if status == 'red' %}
+            {% set border_color = '#e74c3c' %}
+            {% set bg_color = '#fff5f5' %}
+            {% elif status == 'orange' %}
+            {% set border_color = '#f39c12' %}
+            {% set bg_color = '#fef9e7' %}
+            {% endif %}
+
+            <div onclick="toggleSchool('school-{{ school.id }}')"
+                style="padding: 1.5rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: {{ bg_color }}; border-bottom: 1px solid #eee; border-left: 5px solid {{ border_color }};">
+                <div>
+                    <h3 style="margin: 0; color: #2c3e50; font-size: 1.1rem;" class="school-name">{{ school.name }}</h3>
+                    <p style="margin: 0.2rem 0 0; color: #7f8c8d; font-size: 0.9rem;">Código: <span
+                            class="school-code">{{ school.center_code }}</span> |
+                        Alumnos: {{ school.students|length }}
+
+                        {% if status == 'red' %}
+                        <span
+                            style="background: #c0392b; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; margin-left: 10px;">⚠️
+                            CRÍTICO</span>
+                        {% elif status == 'orange' %}
+                        <span
+                            style="background: #e67e22; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; margin-left: 10px;">⚠️
+                            ALERTA</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div style="font-size: 1.2rem; color: #bdc3c7;">
+                    ▼
+                </div>
+            </div>
+
+            <!-- Contenido del Colegio (Aulas) -->
+            <div id="school-{{ school.id }}" style="display: none; padding: 1.5rem;">
+
+                {% if school.students %}
+                <!-- Agrupamos por aula usando JS o lógica inline simple si es posible, 
+                         pero como ya tenemos endpoints potentes, vamos a listar Aulas disponibles -->
+
+                <h4
+                    style="margin-top: 0; color: #34495e; border-bottom: 2px solid #eee; padding-bottom: 0.5rem; margin-bottom: 1rem;">
+                    Aulas Activas</h4>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+                    <!-- Truco para obtener aulas únicas en Jinja -->
+                    {% set classrooms = [] %}
+                    {% for s in school.students %}
+                    {% if s.grade_class and s.grade_class not in classrooms %}
+                    {% set _ = classrooms.append(s.grade_class) %}
+                    {% endif %}
+                    {% endfor %}
+
+                    {% for cls in classrooms %}
+                    <div
+                        style="background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 1rem; text-align: center;">
+                        <h5
+                            style="margin: 0; color: #2c3e50; font-size: 1.2rem; position: relative; display: inline-block;">
+                            {{ cls }}
+                            {% if classroom_risks[school.id][cls] %}
+                            <span
+                                style="position: absolute; top: -5px; right: -10px; width: 10px; height: 10px; background-color: #e74c3c; border-radius: 50%; box-shadow: 0 0 0 2px white;"></span>
+                            {% endif %}
+                        </h5>
+                        <a href="/dashboard/school_admin/classroom/{{ cls }}?school_id={{ school.id }}"
+                            style="display: block; margin-top: 0.5rem; color: #3498db; text-decoration: none; font-size: 0.9rem;">Ver
+                            Detalle &rarr;</a>
+                        <!-- Nota: Este link funciona porque 'view_case_details' checkea school_id, 
+                                 pero 'classroom_detail_view' checkea 'current_user.school_id'. 
+                                 Necesitamos arreglar 'classroom_detail_view' para Super Admin. -->
+                    </div>
+                    {% endfor %}
+
+                    {% if not classrooms %}
+                    <p style="color: #95a5a6;">No hay aulas definidas.</p>
+                    {% endif %}
+                </div>
+
+                {% else %}
+                <p style="color: #95a5a6; font-style: italic;">No hay alumnos registrados en este centro.</p>
+                {% endif %}
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        function toggleSchool(id) {
+            const el = document.getElementById(id);
+            if (el.style.display === "none") {
+                el.style.display = "block";
+            } else {
+                el.style.display = "none";
+            }
+        }
+
+        function filterSchools() {
+            const input = document.getElementById('schoolSearch');
+            const filter = input.value.toLowerCase();
+            const container = document.getElementById('schoolList');
+            const cards = container.getElementsByClassName('school-card');
+
+            for (let i = 0; i < cards.length; i++) {
+                const name = cards[i].getElementsByClassName('school-name')[0].innerText;
+                const code = cards[i].getElementsByClassName('school-code')[0].innerText;
+
+                if (name.toLowerCase().indexOf(filter) > -1 || code.toLowerCase().indexOf(filter) > -1) {
+                    cards[i].style.display = "";
+                } else {
+                    cards[i].style.display = "none";
+                }
+            }
+        }
+    </script>
+
+    {% else %}
+    <div style="text-align: center; padding: 4rem; background: white; border-radius: 12px; border: 2px dashed #ddd;">
+        <h3 style="color: #95a5a6;">No hay centros registrados</h3>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

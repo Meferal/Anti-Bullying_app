@@ -17,7 +17,10 @@
                     style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px;">
                     <option value="" disabled selected>-- Selecciona un alumno --</option>
                     {% for student in students %}
-                    <option value="{{ student.id }}">{{ student.internal_code }} ({{ student.grade_class }})</option>
+                    <option value="{{ student.id }}">
+                        {{ student.name if student.name else 'Alumno' }} ({{ student.internal_code }}) - {{
+                        student.grade_class }}
+                    </option>
                     {% endfor %}
                 </select>
             </div>

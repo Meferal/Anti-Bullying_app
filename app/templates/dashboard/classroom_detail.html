@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}Detalle Aula {{ grade_class }} - Anti-Bullying App{% endblock %}
+
+{% block content %}
+<div style="padding: 2rem; max-width: 1000px; margin: 0 auto;">
+
+    <div style="margin-bottom: 2rem;">
+        {% if user.role.value == 'super_admin' %}
+        <a href="/dashboard/super_admin" style="color: #7f8c8d; text-decoration: none; font-size: 0.9rem;">&larr;
+            Volver al Panel Conselleria</a>
+        {% else %}
+        <a href="/dashboard/school_admin" style="color: #7f8c8d; text-decoration: none; font-size: 0.9rem;">&larr;
+            Volver al Panel de Dirección</a>
+        {% endif %}
+        <h1 style="color: #2c3e50; margin-top: 0.5rem;">Aula: {{ grade_class }}</h1>
+    </div>
+
+    <!-- Resumen rápido si queremos -->
+
+    <h2 style="color: #2c3e50; margin-bottom: 1rem; border-bottom: 2px solid #eee; padding-bottom: 0.5rem;">Historial de
+        Casos y Encuestas</h2>
+
+    {% if cases %}
+    <div style="background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden;">
+        <table id="classroomTable" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f8f9fa; text-align: left;">
+                    <!-- Fecha: Solo Ordenar -->
+                    <th style="padding: 1rem; border-bottom: 2px solid #eee; color: #7f8c8d; cursor: pointer;"
+                        onclick="sortTable(0, 'date')">
+                        Fecha <span id="sort-0">↕️</span>
+                    </th>
+
+                    <!-- Alumno: Ordenar + Filtro -->
+                    <th style="padding: 1rem; border-bottom: 2px solid #eee; color: #7f8c8d;">
+                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                            <span style="cursor: pointer;" onclick="sortTable(1, 'text')">Alumno / a (Código) <span
+                                    id="sort-1">↕️</span></span>
+                            <select id="filter-student" onchange="filterTable()"
+                                style="padding: 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.8rem;">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                    </th>
+
+                    <!-- Riesgo: Ordenar + Filtro -->
+                    <th style="padding: 1rem; border-bottom: 2px solid #eee; color: #7f8c8d;">
+                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                            <span style="cursor: pointer;" onclick="sortTable(2, 'risk')">Nivel Riesgo <span
+                                    id="sort-2">↕️</span></span>
+                            <select id="filter-risk" onchange="filterTable()"
+                                style="padding: 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.8rem;">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                    </th>
+
+                    <!-- Score: Ordenar + Filtro -->
+                    <th style="padding: 1rem; border-bottom: 2px solid #eee; color: #7f8c8d;">
+                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                            <span style="cursor: pointer;" onclick="sortTable(3, 'number')">Score <span
+                                    id="sort-3">↕️</span></span>
+                            <select id="filter-score" onchange="filterTable()"
+                                style="padding: 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.8rem;">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                    </th>
+
+                    <!-- Acción: Nada -->
+                    <th style="padding: 1rem; border-bottom: 2px solid #eee; color: #7f8c8d;">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for case in cases %}
+                <tr class="data-row"
+                    style="border-bottom: 1px solid #eee; background: {% if case.risk_level.value in ['high', 'critical'] %}#fff5f5{% else %}white{% endif %};">
+                    <!-- Fecha -->
+                    <td style="padding: 1rem; color: #555;" data-sort="{{ case.date_submitted.isoformat() }}">
+                        {{ case.date_submitted.strftime('%d/%m/%Y %H:%M') }}
+                    </td>
+                    <!-- Alumno -->
+                    <td style="padding: 1rem; font-weight: 500; color: #2c3e50;">
+                        {{ case.student.name if case.student.name else case.student.internal_code }}
+                    </td>
+                    <!-- Riesgo -->
+                    <td style="padding: 1rem;" data-risk="{{ case.risk_level.value }}">
+                        {% if case.risk_level.value == 'critical' %}
+                        <span
+                            style="background: #e74c3c; color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem;">CRÍTICO</span>
+                        {% elif case.risk_level.value == 'high' %}
+                        <span
+                            style="background: #e67e22; color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem;">Alto</span>
+                        {% elif case.risk_level.value == 'medium' %}
+                        <span
+                            style="background: #f1c40f; color: #333; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem;">Medio</span>
+                        {% else %}
+                        <span
+                            style="background: #2ecc71; color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem;">Bajo</span>
+                        {% endif %}
+                    </td>
+                    <!-- Score -->
+                    <td style="padding: 1rem; color: #555;">
+                        {{ case.calculated_risk_score }}
+                    </td>
+                    <!-- Acción -->
+                    <td style="padding: 1rem;">
+                        <a href="/dashboard/case/{{ case.id }}"
+                            style="color: #3498db; text-decoration: none; font-weight: 600;">
+                            Ver Informe
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            populateFilters(1, 'filter-student');
+            populateFilters(2, 'filter-risk'); // Use text content
+            populateFilters(3, 'filter-score');
+        });
+
+        function populateFilters(colIndex, selectId) {
+            const table = document.getElementById("classroomTable");
+            const rows = table.getElementsByClassName("data-row");
+            const select = document.getElementById(selectId);
+            const uniqueValues = new Set();
+
+            for (let i = 0; i < rows.length; i++) {
+                let cell = rows[i].getElementsByTagName("td")[colIndex];
+                if (cell) {
+                    uniqueValues.add(cell.textContent.trim());
+                }
+            }
+
+            // Convert to array and sort
+            const sortedValues = Array.from(uniqueValues).sort();
+
+            sortedValues.forEach(val => {
+                const option = document.createElement("option");
+                option.value = val;
+                option.text = val;
+                select.appendChild(option);
+            });
+        }
+
+        function filterTable() {
+            const studentFilter = document.getElementById('filter-student').value.toUpperCase();
+            const riskFilter = document.getElementById('filter-risk').value.toUpperCase();
+            const scoreFilter = document.getElementById('filter-score').value.toUpperCase();
+
+            const table = document.getElementById("classroomTable");
+            const rows = table.getElementsByClassName("data-row");
+
+            for (let i = 0; i < rows.length; i++) {
+                const studentText = rows[i].getElementsByTagName("td")[1].textContent.trim().toUpperCase();
+                const riskText = rows[i].getElementsByTagName("td")[2].textContent.trim().toUpperCase();
+                const scoreText = rows[i].getElementsByTagName("td")[3].textContent.trim().toUpperCase();
+
+                let visible = true;
+                if (studentFilter && studentText !== studentFilter) visible = false;
+                if (riskFilter && riskText !== riskFilter) visible = false;
+                if (scoreFilter && scoreText !== scoreFilter) visible = false;
+
+                rows[i].style.display = visible ? "" : "none";
+            }
+        }
+
+        let sortDirections = {}; // Track sort direction per column
+
+        function sortTable(n, type) {
+            const table = document.getElementById("classroomTable");
+            let rows, switching, i, x, y, shouldSwitch, switchcount = 0;
+            switching = true;
+
+            // Toggle direction
+            let dir = sortDirections[n] === "asc" ? "desc" : "asc";
+            sortDirections[n] = dir;
+
+            // Update icons (Visual only)
+            document.querySelectorAll('[id^="sort-"]').forEach(el => el.textContent = '↕️');
+            document.getElementById('sort-' + n).textContent = dir === 'asc' ? '↑' : '↓';
+
+            while (switching) {
+                switching = false;
+                rows = table.rows;
+                // Loop through all table rows (except the first, which contains table headers):
+                for (i = 1; i < (rows.length - 1); i++) {
+                    shouldSwitch = false;
+
+                    x = rows[i].getElementsByTagName("TD")[n];
+                    y = rows[i + 1].getElementsByTagName("TD")[n];
+
+                    let xVal = x.textContent.trim();
+                    let yVal = y.textContent.trim();
+
+                    // Custom handling for dates/attributes
+                    if (type === 'date') {
+                        xVal = x.getAttribute('data-sort') || xVal;
+                        yVal = y.getAttribute('data-sort') || yVal;
+                    }
+
+                    if (type === 'number') {
+                        xVal = parseFloat(xVal);
+                        yVal = parseFloat(yVal);
+                    }
+
+                    if (dir == "asc") {
+                        if (xVal > yVal) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else if (dir == "desc") {
+                        if (xVal < yVal) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    switchcount++;
+                }
+            }
+        }
+    </script>
+    {% else %}
+    <div style="text-align: center; padding: 3rem; background: white; border-radius: 12px; border: 2px dashed #ddd;">
+        <p style="color: #95a5a6;">No hay registros de actividad para esta aula.</p>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -54,6 +54,7 @@ def add_child_to_parent(
     
     new_student = Student(
         internal_code=internal_code,
+        name=name,
         age=age,
         grade_class=grade if grade else "Sin asignar",
         school_id=school_id, 
@@ -85,7 +86,8 @@ def edit_child_form_page(request: Request, student_id: int, current_user: User =
     return templates.TemplateResponse("parents/edit_child.html", {"request": request, "user": current_user, "student": student})
 
 @router.post("/edit_child")
-def edit_child_action(
+async def edit_child_action(
+    request: Request,
     student_id: int = Form(...),
     age: int = Form(...),
     grade: str = Form(None),
@@ -97,10 +99,21 @@ def edit_child_action(
     if not student or student not in current_user.children:
          raise HTTPException(status_code=404, detail="Student not found or unauthorized")
     
+    # Update Name explicitly if desired, but let's handle it better with Form param if possible,
+    # but I switched to Request to avoiding signature clash? No, I can add `name: str = Form(...)`.
+    # Let's pivot back to signature for cleaner code.
+    form = await request.form()
+    if 'name' in form:
+        student.name = form['name']
+    
     # Update básico
     student.age = age
     if grade:
         student.grade_class = grade
+    
+    # Update name if provided in form (need to add to function signature first)
+    if 'name' in await request.form():
+        student.name = (await request.form())['name']
     
     msg = "Datos actualizados correctamente."
     

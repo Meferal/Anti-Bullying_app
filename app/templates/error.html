@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Error - Anti-Bullying App{% endblock %}
+
+{% block content %}
+<div style="padding: 4rem 2rem; text-align: center; max-width: 600px; margin: 0 auto;">
+    <div style="font-size: 4rem; margin-bottom: 1rem;">😕</div>
+    <h1 style="color: #c0392b; margin-bottom: 1rem;">Ha ocurrido un error</h1>
+
+    <div
+        style="background: #fff5f5; border: 1px solid #fab1a0; border-radius: 8px; padding: 1.5rem; color: #c0392b; margin-bottom: 2rem;">
+        {{ error }}
+    </div>
+
+    <a href="javascript:history.back()"
+        style="background: #3498db; color: white; padding: 0.8rem 1.5rem; text-decoration: none; border-radius: 6px; font-weight: 500;">
+        &larr; Volver Atrás
+    </a>
+</div>
+{% endblock %}

@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Añadir Hijo - Anti-Bullying App{% endblock %}
+{% block title %}Añadir Hijo / a - Anti-Bullying App{% endblock %}
 
 {% block content %}
 <div
     style="max-width: 500px; margin: 2rem auto; padding: 2rem; background: white; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-    <h2 style="color: #2c3e50; margin-bottom: 1.5rem;">Registrar Nuevo Alumno</h2>
+    <h2 style="color: #2c3e50; margin-bottom: 1.5rem;">Registrar Nuevo Alumno / a</h2>
 
     <form action="/parents/add_child" method="POST">
         <input type="hidden" name="user_id" value="{{ user_id }}">
@@ -30,9 +30,10 @@
         </div>
 
         <div style="margin-bottom: 2rem;">
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Código del Profesor
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Código del Profesor / a
                 (Opcional)</label>
-            <input type="text" name="teacher_code" placeholder="Ej: PROF-1AB (Déjalo vacío si aún no lo tienes)"
+            <input type="text" name="teacher_code" placeholder="Ej: T-XXXXXXXX-XX" onfocus="this.placeholder=''"
+                onblur="this.placeholder='Ej: T-XXXXXXXX-XX'"
                 style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; font-family: monospace; letter-spacing: 1px;">
             <small style="color: #7f8c8d;">Si no lo tienes ahora, podrás añadirlo más tarde.</small>
         </div>
@@ -44,7 +45,7 @@
             </a>
             <button type="submit"
                 style="flex: 2; padding: 0.8rem; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
-                Guardar Hijo
+                Guardar Hijo / a
             </button>
         </div>
     </form>
