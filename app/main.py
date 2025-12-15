@@ -5,7 +5,7 @@ from .database import init_db
 from dotenv import load_dotenv
 
 # Cargar variables de entorno del .env
-load_dotenv()
+load_dotenv(override=True)
 
 # Inicializar Base de Datos al arrancar
 init_db()

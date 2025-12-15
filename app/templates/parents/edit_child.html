@@ -17,6 +17,12 @@
         <input type="hidden" name="student_id" value="{{ student.id }}">
 
         <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Nombre / Alias</label>
+            <input type="text" name="name" value="{{ student.name or '' }}" required
+                style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px;">
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Edad</label>
             <input type="number" name="age" value="{{ student.age }}" required
                 style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px;">
@@ -37,7 +43,8 @@
                 Vinculación con Profesor
                 {% endif %}
             </label>
-            <input type="text" name="teacher_code" placeholder="Ej: PROF-1AB"
+            <input type="text" name="teacher_code" placeholder="Ej: T-XXXXXXXX-XX" onfocus="this.placeholder=''"
+                onblur="this.placeholder='Ej: T-XXXXXXXX-XX'"
                 style="width: 100%; padding: 0.8rem; border: 1px solid #ffcc80; border-radius: 4px; font-family: monospace; letter-spacing: 1px;">
             <small style="color: #d35400; display: block; margin-top: 0.5rem;">
                 {% if student.teacher_id %}

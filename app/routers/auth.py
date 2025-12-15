@@ -37,7 +37,14 @@ async def login_for_access_token(
     )
     
     # Lógica de Redirección según Rol
-    redirect_url = "/dashboard/teacher" if user.role.value in ["teacher", "school_admin"] else "/parents/dashboard"
+    # Lógica de Redirección según Rol
+    redirect_url = "/parents/dashboard"
+    if user.role.value == "teacher":
+        redirect_url = "/dashboard/teacher"
+    elif user.role.value == "school_admin":
+        redirect_url = "/dashboard/school_admin"
+    elif user.role.value == "super_admin":
+        redirect_url = "/dashboard/super_admin"
 
     # Si la solicitud espera HTML (Browser Submit)
     if "text/html" in request.headers.get("accept", ""):
@@ -99,9 +106,19 @@ def register_user(
             
         return templates.TemplateResponse("register.html", {"request": request, "error": error_msg})
 
-    # 3. Validation School Code (Si rol es teacher y código provisto)
+        return templates.TemplateResponse("register.html", {"request": request, "error": error_msg})
+
+    # 3. Validation School Code
     school_id = None
-    if role == "teacher" and center_code:
+    
+    # Director obligatoriamente necesita codigo
+    if role == "school_admin":
+        if not center_code:
+            return templates.TemplateResponse("register.html", {
+                 "request": request, "error": "El código de centro es obligatorio para registrarse como Director."
+             })
+             
+    if (role == "teacher" or role == "school_admin") and center_code:
         from ..models import School
         school = db.query(School).filter(School.center_code == center_code).first()
         if not school:
@@ -109,6 +126,16 @@ def register_user(
                  "request": request, "error": f"No se encontró ningún centro con el código '{center_code}'"
              })
         school_id = school.id
+        
+        # Si es Director, verificar que no haya ya uno registrado para este cole? (Opcional, pero sensato)
+        # Por ahora permitimos multiples directores por simplicidad o equipos directivos.
+
+    # 3b. Validar Clave Conselleria
+    if role == "super_admin":
+        if center_code != "VALENCIA":
+             return templates.TemplateResponse("register.html", {
+                 "request": request, "error": "La clave de acceso para Conselleria es incorrecta."
+             })
 
     # 4. Generar código si es profesor (Personal)
     teacher_code = None
@@ -117,7 +144,16 @@ def register_user(
         suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
         teacher_code = f"PROF-{suffix}"
 
-    user_role = UserRole.TEACHER if role == "teacher" else UserRole.PARENT
+        suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+        teacher_code = f"PROF-{suffix}"
+
+    user_role = UserRole.PARENT
+    if role == "teacher":
+        user_role = UserRole.TEACHER
+    elif role == "school_admin":
+        user_role = UserRole.SCHOOL_ADMIN
+    elif role == "super_admin":
+        user_role = UserRole.SUPER_ADMIN
 
     new_user = User(
         email=email,
@@ -136,7 +172,18 @@ def register_user(
         data={"sub": new_user.email, "role": new_user.role.value}
     )
     
-    redirect_url = "/dashboard/teacher" if user_role == UserRole.TEACHER else "/parents/dashboard"
+    access_token = create_access_token(
+        data={"sub": new_user.email, "role": new_user.role.value}
+    )
+    
+    if user_role == UserRole.TEACHER:
+        redirect_url = "/dashboard/teacher"
+    elif user_role == UserRole.SCHOOL_ADMIN:
+        redirect_url = "/dashboard/school_admin"
+    elif user_role == UserRole.SUPER_ADMIN:
+        redirect_url = "/dashboard/super_admin"
+    else:
+        redirect_url = "/parents/dashboard"
     
     response = RedirectResponse(url=redirect_url, status_code=status.HTTP_303_SEE_OTHER)
     response.set_cookie(key="access_token", value=access_token, httponly=True)
@@ -239,6 +286,7 @@ def edit_profile_page(request: Request, current_user: User = Depends(get_current
 def edit_profile_action(
     request: Request,
     full_name: str = Form(...),
+    center_code: str = Form(None),
     new_password: str = Form(None),
     confirm_new_password: str = Form(None),
     current_user: User = Depends(get_current_user),
@@ -252,6 +300,20 @@ def edit_profile_action(
     # 1. Actualizar Nombre
     if full_name:
         current_user.full_name = full_name
+
+    # 1b. Actualizar Colegio (Si es profesor y envía código)
+    if center_code:
+        from ..models import School
+        # Buscar colegio por código
+        school = db.query(School).filter(School.center_code == center_code).first()
+        if school:
+            current_user.school_id = school.id
+            if not message: message = "Perfil actualizado"
+            message += " y vinculado al centro " + school.name + "."
+        else:
+             return templates.TemplateResponse("edit_profile.html", {
+                 "request": request, "user": current_user, "error": f"No se encontró ningún centro con el código '{center_code}'"
+             })
 
     # 2. Actualizar Password (si se provee)
     if new_password:

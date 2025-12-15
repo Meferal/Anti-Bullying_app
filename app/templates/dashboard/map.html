@@ -13,7 +13,7 @@
             <h1 style="color: #2c3e50; margin: 0;">Mapa de Centros Educativos</h1>
             <p style="color: #7f8c8d; margin-top: 0.5rem;">Visualización geoespacial de la red de colegios.</p>
         </div>
-        <a href="/dashboard/teacher"
+        <a href="/dashboard/super_admin"
             style="background: #95a5a6; color: white; padding: 0.6rem 1.2rem; border-radius: 8px; text-decoration: none; font-weight: 500;">
             &larr; Volver al Panel
         </a>
@@ -32,17 +32,64 @@
     document.addEventListener('DOMContentLoaded', function () {
         // Init Map centered on Valencia (aprox)
         var map = L.map('map').setView([39.4699, -0.3763], 10);
+        var geoJsonLayer;
+        var allFeatures = [];
 
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(map);
 
+        // Custom Control for Search
+        var searchControl = L.Control.extend({
+            options: { position: 'topright' },
+            onAdd: function (map) {
+                var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+                container.style.backgroundColor = 'white';
+                container.style.padding = '10px';
+                container.style.width = '300px';
+
+                var input = L.DomUtil.create('input', 'search-input', container);
+                input.type = 'text';
+                input.placeholder = '🔍 Buscar centro...';
+                input.style.width = '100%';
+                input.style.padding = '5px';
+                input.style.border = '1px solid #ccc';
+                input.style.borderRadius = '4px';
+
+                input.onkeyup = function (e) {
+                    var val = e.target.value.toLowerCase();
+                    filterMarkers(val);
+                }
+
+                // Prevent map interaction when typing
+                L.DomEvent.disableClickPropagation(container);
+                return container;
+            }
+        });
+        map.addControl(new searchControl());
+
+        function filterMarkers(text) {
+            if (!geoJsonLayer) return;
+            geoJsonLayer.clearLayers();
+
+            var filtered = allFeatures.filter(function (feature) {
+                if (!text) return true;
+                var props = feature.properties;
+                return (props.name && props.name.toLowerCase().includes(text)) ||
+                    (props.code && props.code.toLowerCase().includes(text));
+            });
+
+            geoJsonLayer.addData(filtered);
+        }
+
         // Fetch Data
         fetch('/dashboard/api/schools_geojson')
             .then(response => response.json())
             .then(data => {
-                L.geoJSON(data, {
+                allFeatures = data.features; // Store all
+
+                geoJsonLayer = L.geoJSON(data, {
                     pointToLayer: function (feature, latlng) {
                         var colorMap = {
                             'green': '#2ecc71',

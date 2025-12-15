@@ -6,7 +6,18 @@
 <div style="padding: 2rem; max-width: 800px; margin: 0 auto;">
 
     <div style="margin-bottom: 2rem;">
-        <a href="/dashboard/teacher" style="color: #3498db; text-decoration: none;">&larr; Volver al Dashboard</a>
+        {% if user.role.value == 'school_admin' %}
+        <a href="/dashboard/school_admin" style="color: #3498db; text-decoration: none;">&larr; Volver al Panel de
+            Dirección</a>
+        {% elif user.role.value == 'super_admin' %}
+        <!-- El historial nos devolvería a teacher o school admin si no lo gestionamos, mejor volver al aula o dashboard -->
+        <!-- Como el super admin navega Dashboard -> School -> Classroom -> Case, lo ideal sería volver al Classroom.
+              Pero no tenemos el grade_class fácil aquí sin una query extra o referrer. 
+              Por simplicidad, volvemos a su Dashboard principal o usamos history.back() -->
+        <a href="javascript:history.back()" style="color: #3498db; text-decoration: none;">&larr; Volver</a>
+        {% else %}
+        <a href="/dashboard/teacher" style="color: #3498db; text-decoration: none;">&larr; Volver al Panel Docente</a>
+        {% endif %}
     </div>
 
     <header
@@ -14,8 +25,8 @@
         <div style="display: flex; justify-content: space-between; align-items: start;">
             <div>
                 <h1 style="margin: 0; color: #2c3e50;">Caso #{{ survey.id }}</h1>
-                <p style="color: #7f8c8d; margin-top: 0.5rem;">Alumno: <strong>{{ survey.student.internal_code
-                        }}</strong></p>
+                <p style="color: #7f8c8d; margin-top: 0.5rem;">Alumno: <strong>{{ survey.student.name if
+                        survey.student.name else survey.student.internal_code }}</strong></p>
                 <p style="color: #95a5a6; font-size: 0.9rem;">Fecha: {{ survey.date_submitted.strftime('%d/%m/%Y %H:%M')
                     }}</p>
             </div>
@@ -54,13 +65,20 @@
 
         // Mapeo simple de claves a textos legibles (Idealmente esto vendría del backend o config compartido)
         const labels = {
-            "headache_stomach": "¿Dolores físicos antes del colegio?",
-            "mood_changes": "¿Cambios de humor al volver?",
-            "sleep_problems": "¿Problemas de sueño?",
-            "school_resistance": "¿Resistencia a ir al colegio?",
-            "damaged_items": "¿Material roto o perdido?",
-            "conflict_verbalized": "¿Ha verbalizado conflicto?",
-            "conflict_details": "Detalles del conflicto"
+            "p_item_1": "1. Ropa rota / material dañado",
+            "p_item_2": "2. Heridas o moratones",
+            "p_item_3": "3. Insultos o motes",
+            "p_item_4": "4. Exclusión social",
+            "p_item_5": "5. Coacción o amenazas",
+            "p_item_6": "6. Ansiedad al ir al colegio",
+            "p_item_7": "7. Dolores de cabeza/estómago",
+            "p_item_8": "8. Cambios de sueño/alimentación",
+            "p_item_9": "9. Cambios de humor",
+            "p_item_10": "10. Evitación del tema escolar",
+            "p_item_11": "11. Nerviosismo con móvil/tablet",
+            "p_item_12": "12. Ocultar pantalla",
+            "p_item_13": "13. Ciberacoso evidencia",
+            "p_observations": "Observaciones Familia"
         };
 
         let html = '<dl style="display: grid; grid-template-columns: 1fr; gap: 1rem;">';

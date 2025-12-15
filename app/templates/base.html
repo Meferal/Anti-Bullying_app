@@ -24,7 +24,21 @@
                     <div class="user-info-item">
                         Rol: <strong>{{ user.role.value }}</strong>
                     </div>
-                    {% if user.role.value == 'teacher' or user.role.value == 'school_admin' %}
+                    {% if user.role.value == 'school_admin' %}
+                    <a href="/dashboard/school_admin" class="dropdown-item">
+                        🏠 Volver al Panel
+                    </a>
+                    <a href="/advice/teacher" class="dropdown-item">
+                        🤖 Asistente IA
+                    </a>
+                    {% elif user.role.value == 'super_admin' %}
+                    <a href="/dashboard/super_admin" class="dropdown-item">
+                        🏠 Panel Conselleria
+                    </a>
+                    <a href="/dashboard/map" class="dropdown-item">
+                        🌍 Mapa Global
+                    </a>
+                    {% elif user.role.value == 'teacher' %}
                     <a href="/dashboard/teacher" class="dropdown-item">
                         🏠 Volver al Panel
                     </a>
@@ -33,7 +47,7 @@
                     </a>
                     <div style="border-top: 1px solid #eee; margin: 0.5rem 0;"></div>
                     <a href="/surveys/teacher/student-report" class="dropdown-item">
-                        📝 Informe de Alumno
+                        📝 Informe de Alumno / a
                     </a>
                     <a href="/surveys/teacher/class-report" class="dropdown-item">
                         📢 Informe de Clase

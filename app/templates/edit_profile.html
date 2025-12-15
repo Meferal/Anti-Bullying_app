@@ -36,6 +36,14 @@
 
         {% if user.role.value == 'teacher' %}
         <div style="margin-bottom: 1rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Código del Centro</label>
+            <input type="text" name="center_code" value="{{ user.school.center_code if user.school else '' }}"
+                placeholder="Ej: MAD-001"
+                style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+            <small style="color: #7f8c8d;">Introduce el código de tu centro para vincularte a él.</small>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Código de Profesor</label>
             <input type="text" value="{{ user.teacher_code }}" disabled
                 style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9; box-sizing: border-box;">

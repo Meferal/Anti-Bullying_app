@@ -6,12 +6,12 @@
 <div style="padding: 2rem; max-width: 900px; margin: 0 auto;">
     <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <div>
-            <h1 style="color: #2c3e50;">Mis Hijos</h1>
+            <h1 style="color: #2c3e50;">Mis Hijos / as</h1>
             <p style="color: #7f8c8d;">Gestiona los perfiles y realiza los seguimientos semanales.</p>
         </div>
         <a href="/parents/add_child_form"
             style="background: #3498db; color: white; padding: 0.8rem 1.5rem; text-decoration: none; border-radius: 6px; font-weight: 500;">
-            + Añadir Hijo
+            + Añadir Hijo / a
         </a>
     </header>
 
@@ -42,7 +42,10 @@
             style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid {{ '#2ecc71' if child.teacher_id else '#f39c12' }};">
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
                 <div>
-                    <h2 style="margin: 0; font-size: 1.2rem; color: #2c3e50;">{{ child.internal_code }}</h2>
+                    <h2 style="margin: 0; font-size: 1.2rem; color: #2c3e50;">{{ child.name if child.name else
+                        child.internal_code }}</h2>
+                    <p style="margin: 0; color: #95a5a6; font-size: 0.8rem; font-family: monospace;">ID: {{
+                        child.internal_code }}</p>
                     <p style="margin: 0.5rem 0 0 0; color: #7f8c8d; font-size: 0.9rem;">{{ child.grade_class }}</p>
                 </div>
                 {% if child.teacher_id %}
@@ -66,8 +69,8 @@
                 {% if not child.teacher_id %}
                 <div
                     style="margin-bottom: 1rem; padding: 0.5rem; background: #fff3cd; border-radius: 4px; font-size: 0.85rem; color: #856404;">
-                    ⚠ <strong>Modo Local:</strong> Puedes rellenar encuestas, pero el profesor no las verá hasta que <a
-                        href="/parents/edit_child_form?student_id={{ child.id }}">vincules un código</a>.
+                    ⚠ <strong>Modo Local:</strong> Puedes rellenar encuestas, pero el profesor / a no las verá hasta que
+                    <a href="/parents/edit_child_form?student_id={{ child.id }}">vincules un código</a>.
                 </div>
                 {% endif %}
 
@@ -88,8 +91,8 @@
     </div>
     {% else %}
     <div style="text-align: center; padding: 4rem; background: white; border-radius: 12px; border: 2px dashed #dcdcdc;">
-        <h3 style="color: #95a5a6;">No tienes hijos registrados</h3>
-        <p style="color: #bdc3c7;">Añade el perfil de tu hijo para empezar el seguimiento.</p>
+        <h3 style="color: #95a5a6;">No tienes hijos / as registrados</h3>
+        <p style="color: #bdc3c7;">Añade el perfil de tu hijo / a para empezar el seguimiento.</p>
     </div>
     {% endif %}
 </div>
