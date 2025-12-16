@@ -13,3 +13,5 @@ scikit-learn
 shap
 joblib
 slowapi
+langchain
+langchain-openai
