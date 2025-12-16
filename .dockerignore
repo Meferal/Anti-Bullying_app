@@ -9,5 +9,4 @@ venv/
 .git
 .gitignore
 Dockerfile
-requirements.txt
 documents/
