@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Depends, Request, HTTPException, Body
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
@@ -218,6 +218,36 @@ def view_case_details(request: Request, survey_id: int, current_user: User = Dep
         "survey": survey
     })
 
+@router.post("/case/{survey_id}/derive")
+async def derive_case_to_expert(
+    survey_id: int, 
+    payload: dict = Body(...), 
+    current_user: User = Depends(get_current_user), 
+    db: Session = Depends(get_db)
+):
+    if current_user.role != UserRole.SUPER_ADMIN:
+        raise HTTPException(status_code=403, detail="Acceso denegado")
+    
+    email = payload.get("email")
+    if not email:
+        raise HTTPException(status_code=400, detail="Email del experto requerido")
+
+    survey = db.query(SurveyResponse).filter(SurveyResponse.id == survey_id).first()
+    if not survey:
+        raise HTTPException(status_code=404, detail="Caso no encontrado")
+
+    # SIMULATION LOGS
+    print(f"\n======== [DERIVACIÓN A EXPERTO] ========")
+    print(f"Enviando detalles del Caso #{survey.id}")
+    print(f"Destinatario: {email}")
+    print(f"Alumno Code: {survey.student.internal_code}")
+    print(f"Colegio: {survey.student.school.name}")
+    print(f"Riesgo: {survey.risk_level.value.upper()} (Score: {survey.calculated_risk_score})")
+    print(f"Resumen IA: {survey.ai_summary}")
+    print(f"========================================\n")
+    
+    return JSONResponse(content={"message": "El caso ha sido derivado correctamente al experto."})
+
 # --- SUPER ADMIN DASHBOARD ---
 @router.get("/super_admin", response_class=HTMLResponse)
 def super_admin_dashboard(request: Request, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -289,9 +319,7 @@ def map_view(request: Request, current_user: User = Depends(get_current_user)):
         "user": current_user, 
     })
 
-    return JSONResponse(content=geojson)
 
-    return JSONResponse(content=geojson)
 
 @router.get("/api/schools_geojson")
 def get_schools_geojson(db: Session = Depends(get_db)):

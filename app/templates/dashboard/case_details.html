@@ -10,10 +10,6 @@
         <a href="/dashboard/school_admin" style="color: #3498db; text-decoration: none;">&larr; Volver al Panel de
             Dirección</a>
         {% elif user.role.value == 'super_admin' %}
-        <!-- El historial nos devolvería a teacher o school admin si no lo gestionamos, mejor volver al aula o dashboard -->
-        <!-- Como el super admin navega Dashboard -> School -> Classroom -> Case, lo ideal sería volver al Classroom.
-              Pero no tenemos el grade_class fácil aquí sin una query extra o referrer. 
-              Por simplicidad, volvemos a su Dashboard principal o usamos history.back() -->
         <a href="javascript:history.back()" style="color: #3498db; text-decoration: none;">&larr; Volver</a>
         {% else %}
         <a href="/dashboard/teacher" style="color: #3498db; text-decoration: none;">&larr; Volver al Panel Docente</a>
@@ -21,7 +17,7 @@
     </div>
 
     <header
-        style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 2rem; border-left: 5px solid {{ '#e74c3c' if survey.risk_level.value in ['high', 'critical'] else '#2ecc71' }};">
+        style="position: relative; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 2rem; border-left: 5px solid {{ '#e74c3c' if survey.risk_level.value in ['high', 'critical'] else '#2ecc71' }};">
         <div style="display: flex; justify-content: space-between; align-items: start;">
             <div>
                 <h1 style="margin: 0; color: #2c3e50;">Caso #{{ survey.id }}</h1>
@@ -30,7 +26,38 @@
                 <p style="color: #95a5a6; font-size: 0.9rem;">Fecha: {{ survey.date_submitted.strftime('%d/%m/%Y %H:%M')
                     }}</p>
             </div>
-            <div style="text-align: right;">
+            <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end;">
+                {% if user.role.value == 'super_admin' %}
+                <div
+                    style="position: absolute; top: 1rem; right: 1rem; display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+                    <button onclick="openModal()"
+                        style="padding: 0.5rem 1rem; background-color: #8e44ad; color: white; border: none; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.9rem;">
+                        📤 Derivar a Experto
+                    </button>
+                    <!-- Classification Checklist -->
+                    <div
+                        style="background: white; padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-align: left; font-size: 0.9rem;">
+                        <div style="margin-bottom: 0.2rem;">
+                            <label
+                                style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem; color: #e74c3c;">
+                                <input type="radio" name="case_classification" value="false_positive"> Falso Positivo
+                            </label>
+                        </div>
+                        <div style="margin-bottom: 0.2rem;">
+                            <label
+                                style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem; color: #f39c12;">
+                                <input type="radio" name="case_classification" value="false_negative"> Falso Negativo
+                            </label>
+                        </div>
+                        <div>
+                            <label
+                                style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem; color: #27ae60;">
+                                <input type="radio" name="case_classification" value="real_case"> Caso Real
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
                 <span
                     style="font-size: 1.5rem; font-weight: bold; color: {{ '#e74c3c' if survey.risk_level.value in ['high', 'critical'] else '#27ae60' }};">
                     Riesgo {{ survey.risk_level.value.upper() }}
@@ -63,7 +90,6 @@
         const rawAnswers = JSON.parse(document.getElementById('survey-data').textContent);
         const container = document.getElementById('answers-container');
 
-        // Mapeo simple de claves a textos legibles (Idealmente esto vendría del backend o config compartido)
         const labels = {
             "p_item_1": "1. Ropa rota / material dañado",
             "p_item_2": "2. Heridas o moratones",
@@ -96,4 +122,92 @@
         container.innerHTML = html;
     </script>
 </div>
+</div>
+
+<!-- Modal Structure -->
+<div id="deriveModal" data-survey-id="{{ survey.id }}"
+    style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(2px);">
+    <div
+        style="background-color: #fefefe; margin: 10% auto; padding: 2rem; border: 1px solid #888; width: 90%; max-width: 500px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+        <h2 style="margin-top: 0; color: #2c3e50; font-size: 1.5rem;">Derivar Caso a Experto</h2>
+        <p style="color: #7f8c8d; line-height: 1.5;">Introduce el correo electrónico del experto externo. Se le enviará
+            un resumen completo de este caso, incluyendo el análisis de IA.</p>
+
+        <form id="deriveForm" style="margin-top: 1.5rem;">
+            <label for="expertEmail"
+                style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #34495e;">Email del
+                Experto:</label>
+            <input type="email" id="expertEmail" name="expertEmail" required placeholder="ejemplo@psicologia.com"
+                style="width: 100%; padding: 0.8rem; margin-bottom: 1.5rem; border: 1px solid #bdc3c7; border-radius: 6px; box-sizing: border-box;">
+
+            <div style="text-align: right; display: flex; gap: 1rem; justify-content: flex-end;">
+                <button type="button" onclick="closeModal()"
+                    style="padding: 0.8rem 1.2rem; background-color: #ecf0f1; color: #7f8c8d; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Cancelar</button>
+                <button type="submit" id="submitBtn"
+                    style="padding: 0.8rem 1.2rem; background-color: #8e44ad; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Enviar
+                    Información</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Modal Logic
+    const modal = document.getElementById("deriveModal");
+    const form = document.getElementById("deriveForm");
+    const submitBtn = document.getElementById("submitBtn");
+
+    function openModal() {
+        modal.style.display = "block";
+        document.getElementById("expertEmail").focus();
+    }
+
+    function closeModal() {
+        modal.style.display = "none";
+        form.reset();
+    }
+
+    // Close on outside click
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+
+    // Handle Form Submit
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById("expertEmail").value;
+        const surveyId = modal.getAttribute('data-survey-id');
+
+        // Disable button
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Enviando...";
+
+        try {
+            const response = await fetch(`/dashboard/case/${surveyId}/derive`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email: email })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                alert("✅ Éxito: " + data.message);
+                closeModal();
+            } else {
+                const err = await response.json();
+                alert("❌ Error: " + (err.detail || "Error desconocido"));
+            }
+        } catch (error) {
+            console.error(error);
+            alert("❌ Error de conexión al servidor.");
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Enviar Información";
+        }
+    });
+</script>
 {% endblock %}

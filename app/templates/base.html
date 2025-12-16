@@ -11,7 +11,21 @@
 <body>
     <header>
         <div style="font-size: 1.5rem; font-weight: bold; letter-spacing: -1px;">
+            {% if user %}
+            {% if user.role.value == 'super_admin' %}
+            <a href="/dashboard/super_admin" style="color: white; text-decoration: none;">🛡️ Anti-Bullying App</a>
+            {% elif user.role.value == 'school_admin' %}
+            <a href="/dashboard/school_admin" style="color: white; text-decoration: none;">🛡️ Anti-Bullying App</a>
+            {% elif user.role.value == 'teacher' %}
+            <a href="/dashboard/teacher" style="color: white; text-decoration: none;">🛡️ Anti-Bullying App</a>
+            {% elif user.role.value == 'parent' %}
+            <a href="/parents/dashboard" style="color: white; text-decoration: none;">🛡️ Anti-Bullying App</a>
+            {% else %}
             <a href="/" style="color: white; text-decoration: none;">🛡️ Anti-Bullying App</a>
+            {% endif %}
+            {% else %}
+            <a href="/" style="color: white; text-decoration: none;">🛡️ Anti-Bullying App</a>
+            {% endif %}
         </div>
 
         <div style="display: flex; align-items: center; gap: 1rem;">
