@@ -12,6 +12,39 @@ templates = Jinja2Templates(directory="app/templates")
 from ..security import get_current_user
 from ..models import User, UserRole
 
+# OPTIMIZATION HELPER
+from sqlalchemy import func, literal_column
+def get_latest_risks_bulk(db: Session, student_ids: list[int]) -> list[tuple[int, AlertLevel]]:
+    """
+    Returns a list of (student_id, risk_level) for the top 2 most recent surveys 
+    for each student in the provided list.
+    """
+    if not student_ids:
+        return []
+
+    # Window Function to rank surveys per student by date
+    # row_number() over (partition by student_id order by date_submitted desc)
+    subquery = db.query(
+        SurveyResponse.student_id,
+        SurveyResponse.risk_level,
+        func.row_number().over(
+            partition_by=SurveyResponse.student_id,
+            order_by=desc(SurveyResponse.date_submitted)
+        ).label("rn")
+    ).filter(
+        SurveyResponse.student_id.in_(student_ids)
+    ).subquery()
+
+    # Filter for only top 2
+    results = db.query(
+        subquery.c.student_id,
+        subquery.c.risk_level
+    ).filter(
+        subquery.c.rn <= 2
+    ).all()
+    
+    return results
+
 @router.get("/teacher", response_class=HTMLResponse)
 def teacher_dashboard(request: Request, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     # Verificar rol
@@ -24,10 +57,24 @@ def teacher_dashboard(request: Request, current_user: User = Depends(get_current
     total_students = db.query(Student).filter(Student.teacher_id == teacher.id).count()
     
     # 2. Buscar alertas recientes (Riesgo Alto o Crítico) DE SUS ALUMNOS
-    critical_alerts = db.query(SurveyResponse).join(Student).filter(
-        Student.teacher_id == teacher.id,
-        SurveyResponse.risk_level.in_([AlertLevel.HIGH, AlertLevel.CRITICAL])
-    ).order_by(desc(SurveyResponse.date_submitted)).all()
+    # 2. Buscar alertas recientes (Riesgo Alto o Crítico)
+    # REGLA: Solo considerar incidencias en los 2 últimos registros de cada alumno
+    my_students = db.query(Student).filter(Student.teacher_id == teacher.id).all()
+    critical_alerts = []
+    
+    for student in my_students:
+        # Traer las 2 últimas encuestas de este alumno
+        last_surveys = db.query(SurveyResponse).filter(
+            SurveyResponse.student_id == student.id
+        ).order_by(desc(SurveyResponse.date_submitted)).limit(2).all()
+        
+        # Si alguna de esas 2 es HIGH/CRITICAL, la añadimos
+        for s in last_surveys:
+            if s.risk_level in [AlertLevel.HIGH, AlertLevel.CRITICAL]:
+                critical_alerts.append(s)
+    
+    # Ordenar por fecha globalmente para mostrar las más recientes primero
+    critical_alerts.sort(key=lambda x: x.date_submitted, reverse=True)
     
     # 3. Datos para la tabla principal (Últimas encuestas) DE SUS ALUMNOS
     recent_activity = db.query(SurveyResponse).join(Student).filter(
@@ -68,16 +115,27 @@ def school_admin_dashboard(request: Request, current_user: User = Depends(get_cu
     
     total_alerts_global = 0
     
+    # Pre-fetch recent risks for ALL students in this school
+    student_ids = [s.id for s in students]
+    bulk_risks = get_latest_risks_bulk(db, student_ids)
+    
+    # Map risks to student_id
+    # student_id -> list of risk_levels (max 2)
+    student_risk_map = defaultdict(list)
+    for sid, r_level in bulk_risks:
+        student_risk_map[sid].append(r_level)
+
     for s in students:
-        # Asegurar clave (si no tiene clase, 'Sin Asignar')
+        # Asegurar clave
         c_name = s.grade_class if s.grade_class else "Sin Asignar"
         classrooms[c_name]["students"].append(s)
         
-        # Check high risk surveys for this student
-        high_risk_surveys = db.query(SurveyResponse).filter(
-            SurveyResponse.student_id == s.id,
-            SurveyResponse.risk_level.in_([AlertLevel.HIGH, AlertLevel.CRITICAL])
-        ).count()
+        # Check high risk surveys (from optimized map)
+        risks = student_risk_map.get(s.id, [])
+        high_risk_surveys = 0
+        for r in risks:
+            if r in [AlertLevel.HIGH, AlertLevel.CRITICAL]:
+                high_risk_surveys += 1
         
         classrooms[c_name]["alerts"] += high_risk_surveys
         total_alerts_global += high_risk_surveys
@@ -85,37 +143,24 @@ def school_admin_dashboard(request: Request, current_user: User = Depends(get_cu
     # 3. Determinar Estado por Aula
     classroom_list = []
     
-    # Pre-fetch Critical alerts for this school to avoid N+1 inside loop if possible 
-    # (Actually we are doing N+1 counts inside loop above, let's optimize if needed, 
-    # but for now let's just fix the logic for Red Dot)
-    
     for name, data in classrooms.items():
         count = len(data["students"])
         alerts = data["alerts"]
         
-        # Check specific risks for this class
-        # We need to know if ANY is critical for the Red Dot
+        # Check Criticals (using the same optimized map)
         has_critical = False
-        for s in data["students"]:
-             # This is N*M, but M is small (surveys per student usually 1 active)
-             # Better: Query above should store risks
-             pass 
-        
-        # Re-query specifically for Critical Count to be sure
-        critical_count = db.query(SurveyResponse).join(Student).filter(
-            Student.grade_class == name,
-            Student.school_id == current_user.school_id,
-            SurveyResponse.risk_level == AlertLevel.CRITICAL
-        ).count()
-
-        has_critical = critical_count > 0
+        for stud in data["students"]:
+             stud_risks = student_risk_map.get(stud.id, [])
+             if AlertLevel.CRITICAL in stud_risks:
+                 has_critical = True
+                 break
 
         # Status Logic
         status_color = "green"
         if has_critical:
-            status_color = "red" # 1 Critical = Red
+            status_color = "red" 
         elif alerts > 0:
-            status_color = "orange" # Any High/Critical = Orange (if not captured by above)
+            status_color = "orange"
             
         classroom_list.append({
             "name": name,
@@ -170,22 +215,70 @@ def classroom_detail_view(request: Request, grade_class: str, school_id: int = N
     ).all()
     
     # Obtener sus casos (encuestas)
+    # --- DASHBOARD METRICS CALCULATION ---
+    total_students = len(students)
+    
+    # 1. Active Alerts (Last 2 Surveys Rule)
+    # Optimized using helper
+    active_alerts_count = 0
+    students_with_alerts = 0
+    
+    student_ids = [s.id for s in students]
+    bulk_risks = get_latest_risks_bulk(db, student_ids)
+    
+    # Map risks to student to count
+    student_risk_map = defaultdict(list)
+    for sid, r in bulk_risks:
+        student_risk_map[sid].append(r)
+        
+    for s in students:
+        risks = student_risk_map.get(s.id, [])
+        has_alert = False
+        for r in risks:
+            if r in [AlertLevel.HIGH, AlertLevel.CRITICAL]:
+                active_alerts_count += 1
+                has_alert = True
+        
+        if has_alert:
+            students_with_alerts += 1
+
+    # Healthy Percentage: (Total Students - Students with Alerts) / Total Students
+    healthy_percentage = 0
+    if total_students > 0:
+        healthy_percentage = int(((total_students - students_with_alerts) / total_students) * 100)
+    else:
+        healthy_percentage = 100
+
+    # 2. Teacher Name
+    teacher_name = "Sin asignar"
+    if students:
+        # Check the first student's teacher
+        # (Assuming all students in a class have same teacher, or we list the first found)
+        first_student = students[0]
+        if first_student.teacher:
+            teacher_name = first_student.teacher.full_name
+
+    # 3. Retrieve ALL cases for the list view
     cases = []
     for s in students:
         surveys = db.query(SurveyResponse).filter(
             SurveyResponse.student_id == s.id
         ).order_by(desc(SurveyResponse.date_submitted)).all()
-        for surv in surveys:
-            cases.append(surv)
-            
-    # Ordenar casos por fecha
+        cases.extend(surveys)
+    
+    # Sort cases by date descending
     cases.sort(key=lambda x: x.date_submitted, reverse=True)
 
     return templates.TemplateResponse("dashboard/classroom_detail.html", {
         "request": request,
         "user": current_user,
         "grade_class": grade_class,
-        "cases": cases
+        "cases": cases,
+        # New Dashboard Data
+        "total_students": total_students,
+        "active_alerts_count": active_alerts_count,
+        "healthy_percentage": healthy_percentage,
+        "teacher_name": teacher_name
     })
 
 @router.get("/case/{survey_id}", response_class=HTMLResponse)
@@ -335,33 +428,61 @@ def super_admin_dashboard(request: Request, current_user: User = Depends(get_cur
     school_status_map = {}
     
     # Optimized Status Queries
+    # Optimized Status Queries
     from collections import defaultdict
     from ..models import SurveyResponse, AlertLevel
-    # Query: SchoolID, GradeClass, RiskLevel
-    student_risks = db.query(
-        Student.school_id, 
-        Student.grade_class,
-        SurveyResponse.risk_level
-    ).join(SurveyResponse).all()
     
-    # Map: school_id -> list of risks
-    risk_map = defaultdict(list)
+    # NEW STRATEGY: 
+    # Instead of fetching ALL risks for ALL history, we only care about the latest status.
+    # We can fetch (student_id, risk_level) for top 2 of ALL students.
+    # This might be heavy (14k students * 2 rows = 28k rows), but much lighter than loading objects.
+    
+    # 1. Get all student IDs involved (or just run query on all survey responses)
+    # Running window function on ENTIRE table might be heavy but for 14k students it's manageable (ms range in Postgres/SQLite).
+    
+    # Let's use a modified query that groups by School directly if possible?
+    # Window function needs to be per student.
+    
+    # Get all students with school_id
+    # Get all students with school_id and grade_class
+    all_students = db.query(Student.id, Student.school_id, Student.grade_class).all()
+    
+    # Map student_id -> (school_id, grade_class)
+    student_info_map = {s.id: (s.school_id, s.grade_class) for s in all_students}
+    all_student_ids = list(student_info_map.keys())
+    
+    # Get latest risks for ALL students
+    # Using the helper
+    bulk_risks = get_latest_risks_bulk(db, all_student_ids)
+    
+    # Map: school_id -> set of risks found
+    school_risk_map = defaultdict(set)
     # Map: school_id -> classroom_name -> has_critical (bool)
     classroom_critical_map = defaultdict(lambda: defaultdict(bool))
+    
+    for sid, r_level in bulk_risks:
+        info = student_info_map.get(sid)
+        if info:
+            sch_id, g_class = info
+            
+            # Add to school risks
+            school_risk_map[sch_id].add(r_level)
+            
+            # Check Critical for Classroom Map
+            if r_level == AlertLevel.CRITICAL and g_class:
+                classroom_critical_map[sch_id][g_class] = True
 
-    for s_id, g_class, r_level in student_risks:
-        risk_map[s_id].append(r_level)
-        if r_level == AlertLevel.CRITICAL:
-            classroom_critical_map[s_id][g_class] = True
+    school_status_map = {}
     
     for school in schools:
         status = "green"
-        if school.id in risk_map:
-            risks = risk_map[school.id]
-            if AlertLevel.CRITICAL in risks:
-                status = "red"
-            elif AlertLevel.HIGH in risks:
-                status = "orange"
+        risks = school_risk_map.get(school.id, set())
+        
+        if AlertLevel.CRITICAL in risks:
+            status = "red"
+        elif AlertLevel.HIGH in risks:
+            status = "orange"
+            
         school_status_map[school.id] = status
 
     return templates.TemplateResponse("dashboard/super_admin_view.html", {
@@ -497,15 +618,24 @@ def view_school_detail_as_admin(request: Request, school_id: int, current_user: 
     classrooms = defaultdict(lambda: {"students": [], "alerts": 0, "status": "green"})
     total_alerts_global = 0
     
+    # Pre-fetch recent risks for ALL students in this school
+    student_ids = [s.id for s in students]
+    bulk_risks = get_latest_risks_bulk(db, student_ids)
+    
+    student_risk_map = defaultdict(list)
+    for sid, r_level in bulk_risks:
+        student_risk_map[sid].append(r_level)
+
     for s in students:
         c_name = s.grade_class if s.grade_class else "Sin Asignar"
         classrooms[c_name]["students"].append(s)
         
-        # Check high risk surveys
-        high_risk_surveys = db.query(SurveyResponse).filter(
-            SurveyResponse.student_id == s.id,
-            SurveyResponse.risk_level.in_([AlertLevel.HIGH, AlertLevel.CRITICAL])
-        ).count()
+        # Check high risk surveys (from optimized map)
+        risks = student_risk_map.get(s.id, [])
+        high_risk_surveys = 0
+        for r in risks:
+            if r in [AlertLevel.HIGH, AlertLevel.CRITICAL]:
+                high_risk_surveys += 1
         
         classrooms[c_name]["alerts"] += high_risk_surveys
         total_alerts_global += high_risk_surveys
@@ -517,13 +647,12 @@ def view_school_detail_as_admin(request: Request, school_id: int, current_user: 
         count = len(data["students"])
         alerts = data["alerts"]
         
-        critical_count = db.query(SurveyResponse).join(Student).filter(
-            Student.grade_class == name,
-            Student.school_id == school.id,
-            SurveyResponse.risk_level == AlertLevel.CRITICAL
-        ).count()
-
-        has_critical = critical_count > 0
+        has_critical = False
+        for stud in data["students"]:
+             stud_risks = student_risk_map.get(stud.id, [])
+             if AlertLevel.CRITICAL in stud_risks:
+                 has_critical = True
+                 break
 
         # Status Logic
         status_color = "green"

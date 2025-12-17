@@ -1,6 +1,9 @@
 <div align="center">
 
+![logo](./documents/img/Logo_R.A.D.A.R..png)
+
 # Anti-Bullying App - Proyecto de Detección y Prevención
+# R.A.D.A.R. (Red de Alerta y Detección de Acoso Relacional)
 
 <!-- Tech Stack Badges -->
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
@@ -102,6 +105,8 @@ Anti-Bullying_app/
 │   └── teachers/        # Documentación para el asistente de docentes
 ├── Dockerfile           # Definición de la imagen Docker
 ├── docker-compose.yml   # Orquestación de servicios
+├── dev_utils/           # Herramientas de Desarrollo y Testing (Local - No Prod)
+├── scripts/             # Scripts de Administración y Despliegue (Prod)
 └── requirements.txt     # Dependencias del proyecto
 ```
 
@@ -170,7 +175,7 @@ La aplicación está preparada para desplegarse en **Render** u otras plataforma
 *   **Cindy Tatiana Marin Espinosa** [GitHub](https://github.com/citmaes17) | [LinkedIn](https://www.linkedin.com/in/cindy-marine/)
 
 ### Ciberseguridad
-*   **Raniero Julio Del Federico** [LinkedIn](https://www.linkedin.com/in/ranierodf/)
 *   **Laura Bea del Olmo** [LinkedIn](https://www.linkedin.com/in/laurabeadelolmo/)
+*   **Raniero Julio Del Federico** [LinkedIn](https://www.linkedin.com/in/ranierodf/)
 *   **David Laencina López** [LinkedIn](https://www.linkedin.com/in/david-laencina-l%C3%B3pez-0372ba238/)
 *   **Sebastian Correa** [LinkedIn](https://www.linkedin.com/in/sebastian-correa-99b25a342/?trk=contact-info)
