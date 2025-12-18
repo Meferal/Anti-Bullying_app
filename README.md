@@ -110,6 +110,28 @@ Anti-Bullying_app/
 └── requirements.txt     # Dependencias del proyecto
 ```
 
+## ⚙️ Configuración del Entorno (Variables de Entorno)
+
+Para que la aplicación funcione correctamente en local, es **obligatorio** crear un archivo `.env` en la raíz del proyecto. Este archivo contiene credenciales y configuraciones sensibles.
+
+Crea un archivo llamado `.env` y añade las siguientes variables:
+
+```bash
+# Seguridad de la Aplicación
+SECRET_KEY="tu_secret_key_generada_aleatoriamente"
+ENVIRONMENT="development" # Use 'production' para despliegue real
+
+# Configuración de Correo (Gmail SMTP - Para recuperación de claves)
+EMAIL_USER="tucorreo@gmail.com"
+EMAIL_PASSWORD="tu_contraseña_de_aplicacion_google"
+
+# Inteligencia Artificial (OpenAI API)
+OPENAI_API_KEY="sk-..."
+```
+
+> [!WARNING]
+> Nunca subas el archivo `.env` al repositorio. Asegúrate de que está incluido en el `.gitignore`.
+
 ## 🚀 Guía de Inicio Rápido (Local)
 
 1.  **Clonar el repositorio:**

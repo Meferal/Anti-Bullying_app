@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
+from collections import defaultdict
 from ..database import get_db
 from ..models import Student, SurveyResponse, AlertLevel
 
@@ -110,7 +111,7 @@ def school_admin_dashboard(request: Request, current_user: User = Depends(get_cu
     students = db.query(Student).filter(Student.school_id == current_user.school_id).all()
     
     # 2. Agrupar por Aula
-    from collections import defaultdict
+    # 2. Agrupar por Aula
     classrooms = defaultdict(lambda: {"students": [], "alerts": 0, "status": "green"})
     
     total_alerts_global = 0
@@ -429,7 +430,7 @@ def super_admin_dashboard(request: Request, current_user: User = Depends(get_cur
     
     # Optimized Status Queries
     # Optimized Status Queries
-    from collections import defaultdict
+    # Optimized Status Queries
     from ..models import SurveyResponse, AlertLevel
     
     # NEW STRATEGY: 
@@ -512,7 +513,8 @@ def map_view(request: Request, current_user: User = Depends(get_current_user)):
 def get_schools_geojson(db: Session = Depends(get_db)):
     from ..models import School, User, UserRole, SurveyResponse, Student
     from fastapi.responses import JSONResponse
-    from collections import defaultdict
+    from fastapi.responses import JSONResponse
+    from sqlalchemy import or_
     from sqlalchemy import or_
 
     # 1. Obtener SOLO los colegios con estudiantes y coordenadas (Query 1)
@@ -604,7 +606,7 @@ def view_school_detail_as_admin(request: Request, school_id: int, current_user: 
          return templates.TemplateResponse("error.html", {"request": request, "error": "Acceso restringido."})
     
     from ..models import School, Student, SurveyResponse, AlertLevel
-    from collections import defaultdict
+    from ..models import School, Student, SurveyResponse, AlertLevel
 
     school = db.query(School).filter(School.id == school_id).first()
     if not school:
