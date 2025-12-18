@@ -209,3 +209,6 @@ __marimo__/
 # Auxiliary Scripts
 dev_utils/
 
+# RAG Indexes (Generated locally or on server)
+documents/*_index/
+
